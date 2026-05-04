@@ -26,7 +26,7 @@ import Login from './components/Login';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { AnimatePresence, motion } from 'motion/react';
-import { StickyNote, Filter, LayoutGrid, User as UserIcon, LogOut, ListTodo, CalendarDays, Plus } from 'lucide-react';
+import { StickyNote, Filter, LayoutGrid, User as UserIcon, LogOut, ListTodo, CalendarDays, Plus, X } from 'lucide-react';
 
 export default function App() {
   const [user, setUser] = useState<User | null>(null);
@@ -243,7 +243,7 @@ export default function App() {
             </div>
             <div className="flex-1 min-w-0">
                <p className="text-[11px] font-bold text-stone-900 truncate uppercase tracking-tight">
-                 {user?.displayName || 'Usuário'}
+                 {user?.displayName?.split(' ')[0] || 'Usuário'}
                </p>
                <p className="text-[9px] text-stone-500 truncate">
                  {user?.email}
@@ -261,10 +261,19 @@ export default function App() {
             <input 
               type="text"
               placeholder="Pesquisar anotações..."
-              className="w-full bg-white border border-stone-200 rounded-2xl py-3 pl-12 pr-4 text-sm outline-none focus:border-primary focus:ring-4 focus:ring-primary/5 transition-all"
+              className="w-full bg-white border border-stone-200 rounded-2xl py-3 pl-12 pr-10 text-sm outline-none focus:border-primary focus:ring-4 focus:ring-primary/5 transition-all"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
+            {searchTerm && (
+              <button 
+                onClick={() => setSearchTerm('')}
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-600 transition-colors"
+                aria-label="Limpar pesquisa"
+              >
+                <X size={16} />
+              </button>
+            )}
           </div>
 
           <div className="flex items-center gap-3">
