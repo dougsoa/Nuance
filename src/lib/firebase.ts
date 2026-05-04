@@ -1,0 +1,40 @@
+import { initializeApp } from 'firebase/app';
+import { getAuth, GoogleAuthProvider, signInWithPopup, signOut } from 'firebase/auth';
+import { getFirestore, doc, getDocFromServer } from 'firebase/firestore';
+import firebaseConfig from '../../firebase-applet-config.json';
+
+const app = initializeApp(firebaseConfig);
+export const db = getFirestore(app, firebaseConfig.firestoreDatabaseId);
+export const auth = getAuth(app);
+export const googleProvider = new GoogleAuthProvider();
+
+// Standard sign in helper
+export const signInWithGoogle = async () => {
+  try {
+    const result = await signInWithPopup(auth, googleProvider);
+    return result.user;
+  } catch (error) {
+    console.error("Error signing in with Google", error);
+    throw error;
+  }
+};
+
+export const logout = () => signOut(auth);
+
+// Critical: Validate connection to Firestore
+async function testConnection() {
+  try {
+    // Attempting to read a non-existent doc just to check connectivity
+    await getDocFromServer(doc(db, 'system', 'connection-test'));
+    console.log("Firestore connection validated.");
+  } catch (error) {
+    if (error instanceof Error && error.message.includes('offline')) {
+      console.error("Please check your Firebase configuration or internet connection.");
+    } else {
+      // Missing permissions is also a sign of connection (but rules limited)
+      console.log("Firestore connection check completed (permissions might limit direct test).");
+    }
+  }
+}
+
+testConnection();

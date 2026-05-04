@@ -1,0 +1,76 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Default deny
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Helper functions
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    // Note validation
+    function isValidNote(data) {
+      return data.keys().hasAll(['title', 'content', 'userId', 'createdAt', 'updatedAt']) &&
+             data.keys().size() >= 5 &&
+             data.title is string && data.title.size() <= 200 &&
+             data.content is string && data.content.size() <= 10000 &&
+             data.userId == request.auth.uid &&
+             data.createdAt == request.time &&
+             (data.get('category', null) == null || data.category is string) &&
+             (data.get('tags', null) == null || data.tags is list) &&
+             (data.get('completed', false) is bool);
+    }
+
+    match /notes/{noteId} {
+      allow get: if isOwner(existing().userId);
+      allow list: if isSignedIn() && resource.data.userId == request.auth.uid;
+      
+      allow create: if isSignedIn() && isValidNote(incoming());
+      
+      allow update: if isSignedIn() && isOwner(existing().userId) && (
+        // Allow general updates (content, title, tags, category)
+        (incoming().diff(existing()).affectedKeys().hasOnly(['title', 'content', 'category', 'tags', 'completed', 'updatedAt']) &&
+         incoming().updatedAt == request.time &&
+         incoming().userId == existing().userId &&
+         incoming().createdAt == existing().createdAt)
+      );
+      
+      allow delete: if isOwner(existing().userId);
+    }
+
+    // Categories
+    function isValidCategory(data) {
+      return data.keys().hasAll(['name', 'userId']) &&
+             data.name is string && data.name.size() <= 50 &&
+             data.userId == request.auth.uid;
+    }
+
+    match /categories/{categoryId} {
+      allow read: if isOwner(resource.data.userId);
+      allow create: if isSignedIn() && isValidCategory(incoming());
+      allow update: if isSignedIn() && isOwner(existing().userId) && 
+                      incoming().diff(existing()).affectedKeys().hasOnly(['name', 'color']) &&
+                      incoming().userId == existing().userId;
+      allow delete: if isOwner(existing().userId);
+    }
+  }
+}

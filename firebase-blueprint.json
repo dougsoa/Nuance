@@ -1,0 +1,76 @@
+{
+  "entities": {
+    "Note": {
+      "title": "Note",
+      "description": "A personal note or task",
+      "type": "object",
+      "properties": {
+        "title": {
+          "type": "string",
+          "description": "Title of the note"
+        },
+        "content": {
+          "type": "string",
+          "description": "Body content of the note (Markdown supported)"
+        },
+        "category": {
+          "type": "string",
+          "description": "Category name"
+        },
+        "tags": {
+          "type": "array",
+          "description": "List of tags",
+          "items": { "type": "string" }
+        },
+        "completed": {
+          "type": "boolean",
+          "description": "Whether the task is completed"
+        },
+        "userId": {
+          "type": "string",
+          "description": "UID of the owner"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Creation timestamp"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Last update timestamp"
+        }
+      },
+      "required": ["title", "content", "userId", "createdAt", "updatedAt"]
+    },
+    "Category": {
+      "title": "Category",
+      "description": "Custom category for notes",
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Name of the category"
+        },
+        "color": {
+          "type": "string",
+          "description": "Hex color code"
+        },
+        "userId": {
+          "type": "string",
+          "description": "UID of the owner"
+        }
+      }
+    }
+  },
+  "firestore": {
+    "/notes/{noteId}": {
+      "schema": "Note",
+      "description": "Collection of user notes"
+    },
+    "/categories/{categoryId}": {
+      "schema": "Category",
+      "description": "User specific categories"
+    }
+  }
+}
