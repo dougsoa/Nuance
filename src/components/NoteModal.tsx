@@ -1,22 +1,61 @@
 import { useState, useEffect } from 'react';
-import { X, Tag, Plus, Loader2 } from 'lucide-react';
-import { Note } from '../types';
+import { X, Tag, Plus, Loader2, CheckCircle2, Circle, Trash2, ListTodo, Search, ArrowRight } from 'lucide-react';
+import { Note, NoteTask } from '../types';
 import { motion, AnimatePresence } from 'motion/react';
+import { v4 as uuidv4 } from 'uuid';
 
 interface NoteModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSave: (data: Partial<Note>) => Promise<void>;
   initialData?: Note | null;
+  availableNotes?: Note[];
 }
 
-export default function NoteModal({ isOpen, onClose, onSave, initialData }: NoteModalProps) {
+export default function NoteModal({ isOpen, onClose, onSave, initialData, availableNotes = [] }: NoteModalProps) {
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [category, setCategory] = useState('');
   const [tagInput, setTagInput] = useState('');
   const [tags, setTags] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
+  const [tasks, setTasks] = useState<NoteTask[]>([]);
+  const [newTaskText, setNewTaskText] = useState('');
+  const [isDailyTask, setIsDailyTask] = useState(false);
+  const [isImporting, setIsImporting] = useState(false);
+  const [importSearch, setImportSearch] = useState('');
+
+  const filteredImportNotes = availableNotes.filter(n => 
+    n.title.toLowerCase().includes(importSearch.toLowerCase())
+  );
+
+  const handleImportNote = (note: Note) => {
+    const lines = note.content
+      .split('\n')
+      .map(line => line.trim())
+      .filter(line => line.length > 0);
+    
+    const newTasks = lines.map(line => ({
+      id: uuidv4(),
+      text: line,
+      completed: false
+    }));
+
+    if (newTasks.length > 0) {
+      setTasks([...tasks, ...newTasks]);
+    } else {
+      setTasks([...tasks, { id: uuidv4(), text: note.title, completed: false }]);
+    }
+
+    // Add a note in content for context
+    const importContext = `Notas importadas de: ${note.title}`;
+    if (!content.includes(importContext)) {
+      setContent(prev => prev ? `${prev}\n\n${importContext}` : importContext);
+    }
+    
+    setIsImporting(false);
+    setImportSearch('');
+  };
 
   useEffect(() => {
     if (initialData) {
@@ -24,11 +63,15 @@ export default function NoteModal({ isOpen, onClose, onSave, initialData }: Note
       setContent(initialData.content);
       setCategory(initialData.category || '');
       setTags(initialData.tags || []);
+      setTasks(initialData.tasks || []);
+      setIsDailyTask(!!initialData.isDailyTask);
     } else {
       setTitle('');
       setContent('');
       setCategory('');
       setTags([]);
+      setTasks([]);
+      setIsDailyTask(false);
     }
   }, [initialData, isOpen]);
 
@@ -43,17 +86,34 @@ export default function NoteModal({ isOpen, onClose, onSave, initialData }: Note
     setTags(tags.filter(t => t !== tagToRemove));
   };
 
+  const handleAddTask = () => {
+    if (newTaskText.trim()) {
+      setTasks([...tasks, { id: uuidv4(), text: newTaskText.trim(), completed: false }]);
+      setNewTaskText('');
+    }
+  };
+
+  const toggleTask = (id: string) => {
+    setTasks(tasks.map(t => t.id === id ? { ...t, completed: !t.completed } : t));
+  };
+
+  const removeTask = (id: string) => {
+    setTasks(tasks.filter(t => t.id !== id));
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!title || !content) return;
+    if (!title) return;
 
     setLoading(true);
     try {
       await onSave({
         title,
         content,
-        category,
+        category: isDailyTask ? 'Daily Tasks' : category,
         tags,
+        tasks,
+        isDailyTask,
       });
       onClose();
     } catch (err) {
@@ -95,36 +155,52 @@ export default function NoteModal({ isOpen, onClose, onSave, initialData }: Note
           </div>
 
           <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-8 space-y-6 scrollbar-hide">
-            <div className="space-y-1">
-              <label className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Título</label>
-              <input 
-                type="text"
-                placeholder="Ex: Reunião de Planejamento"
-                className="w-full text-2xl font-semibold outline-none placeholder:text-gray-200"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                required
-              />
+            <div className="flex items-center justify-between mb-2">
+              <div className="space-y-1 flex-1 mr-4">
+                <label className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Título</label>
+                <input 
+                  type="text"
+                  placeholder="Ex: Planejamento Diário"
+                  className="w-full text-2xl font-semibold outline-none placeholder:text-gray-200"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  required
+                />
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsDailyTask(!isDailyTask)}
+                className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all border ${
+                  isDailyTask 
+                    ? 'bg-primary/10 border-primary text-primary shadow-sm shadow-primary/10' 
+                    : 'bg-gray-50 border-gray-100 text-gray-400 hover:text-gray-600'
+                }`}
+              >
+                <ListTodo size={14} />
+                Daily Task
+              </button>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-1">
-                <label className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Categoria</label>
-                <input 
-                  type="text"
-                  placeholder="Ex: Trabalho"
-                  className="w-full bg-gray-50 rounded-xl px-4 py-2 outline-none focus:ring-2 focus:ring-black/5 transition-all"
-                  value={category}
-                  onChange={(e) => setCategory(e.target.value)}
-                />
-              </div>
-              <div className="space-y-1">
+              {!isDailyTask && (
+                <div className="space-y-1">
+                  <label className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Categoria</label>
+                  <input 
+                    type="text"
+                    placeholder="Ex: Trabalho"
+                    className="w-full bg-gray-50 rounded-xl px-4 py-2 outline-none focus:ring-2 focus:ring-black/5 transition-all text-sm"
+                    value={category}
+                    onChange={(e) => setCategory(e.target.value)}
+                  />
+                </div>
+              )}
+              <div className={`space-y-1 ${isDailyTask ? 'col-span-2' : ''}`}>
                 <label className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Adicionar Tags</label>
                 <div className="relative">
                   <input 
                     type="text"
                     placeholder="Pressione Enter"
-                    className="w-full bg-gray-50 rounded-xl px-4 py-2 outline-none focus:ring-2 focus:ring-black/5 transition-all pr-12"
+                    className="w-full bg-gray-50 rounded-xl px-4 py-2 outline-none focus:ring-2 focus:ring-black/5 transition-all pr-12 text-sm"
                     value={tagInput}
                     onChange={(e) => setTagInput(e.target.value)}
                     onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddTag())}
@@ -143,7 +219,7 @@ export default function NoteModal({ isOpen, onClose, onSave, initialData }: Note
             {tags.length > 0 && (
               <div className="flex flex-wrap gap-2">
                 {tags.map(tag => (
-                  <span key={tag} className="flex items-center gap-1 px-3 py-1 bg-gray-100 rounded-full text-sm text-gray-600 font-medium">
+                  <span key={tag} className="flex items-center gap-1 px-3 py-1 bg-gray-100 rounded-full text-[10px] text-gray-600 font-bold uppercase tracking-wider">
                     {tag}
                     <button type="button" onClick={() => removeTag(tag)} className="hover:text-red-500 transition-colors">
                       <X size={12} />
@@ -153,14 +229,114 @@ export default function NoteModal({ isOpen, onClose, onSave, initialData }: Note
               </div>
             )}
 
+            {isDailyTask && (
+              <div className="space-y-4 pt-4 border-t border-gray-100">
+                <div className="space-y-1">
+                  <div className="flex items-center justify-between">
+                    <label className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Lista de Tarefas</label>
+                    <button 
+                      type="button"
+                      onClick={() => setIsImporting(!isImporting)}
+                      className="text-[10px] font-bold text-primary uppercase tracking-widest hover:underline"
+                    >
+                      {isImporting ? 'Cancelar Importação' : 'Importar de Notas'}
+                    </button>
+                  </div>
+
+                  {isImporting ? (
+                    <div className="bg-gray-50 rounded-2xl p-4 border border-primary/20 space-y-4">
+                      <div className="relative">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
+                        <input 
+                          type="text"
+                          placeholder="Pesquisar notas para importar..."
+                          className="w-full bg-white rounded-xl pl-10 pr-4 py-2 text-sm outline-none border border-gray-100 focus:border-primary/30 transition-all"
+                          value={importSearch}
+                          onChange={(e) => setImportSearch(e.target.value)}
+                        />
+                      </div>
+                      <div className="max-h-48 overflow-y-auto space-y-1 pr-1 custom-scrollbar">
+                        {filteredImportNotes.map(note => (
+                          <button
+                            key={note.id}
+                            type="button"
+                            onClick={() => handleImportNote(note)}
+                            className="w-full flex items-center justify-between p-2 rounded-lg hover:bg-white text-left group transition-all"
+                          >
+                            <span className="text-sm font-medium text-gray-700 truncate">{note.title}</span>
+                            <ArrowRight size={14} className="text-primary opacity-0 group-hover:opacity-100 transition-all" />
+                          </button>
+                        ))}
+                        {filteredImportNotes.length === 0 && (
+                          <p className="text-center py-4 text-xs text-gray-400 font-medium italic">Nenhuma nota disponível</p>
+                        )}
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="relative">
+                      <input 
+                        type="text"
+                        placeholder="Adicione uma tarefa..."
+                        className="w-full bg-gray-50 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-black/5 transition-all pr-12 text-sm"
+                        value={newTaskText}
+                        onChange={(e) => setNewTaskText(e.target.value)}
+                        onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddTask())}
+                      />
+                      <button 
+                        type="button"
+                        onClick={handleAddTask}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 bg-primary text-white p-1.5 rounded-lg hover:opacity-90 shadow-sm"
+                      >
+                        <Plus size={16} />
+                      </button>
+                    </div>
+                  )}
+                </div>
+
+                <div className="space-y-2">
+                  <AnimatePresence mode="popLayout">
+                    {tasks.map(task => (
+                      <motion.div 
+                        key={task.id}
+                        initial={{ opacity: 0, x: -10 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        exit={{ opacity: 0, scale: 0.95 }}
+                        className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl group transition-all hover:bg-gray-100/50"
+                      >
+                        <button
+                          type="button"
+                          onClick={() => toggleTask(task.id)}
+                          className={`transition-colors ${task.completed ? 'text-primary' : 'text-gray-300 hover:text-gray-400'}`}
+                        >
+                          {task.completed ? <CheckCircle2 size={20} /> : <Circle size={20} />}
+                        </button>
+                        <span className={`flex-1 text-sm font-medium ${task.completed ? 'text-gray-400 line-through' : 'text-gray-700'}`}>
+                          {task.text}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => removeTask(task.id)}
+                          className="opacity-0 group-hover:opacity-100 text-gray-300 hover:text-red-500 transition-all p-1"
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      </motion.div>
+                    ))}
+                  </AnimatePresence>
+                </div>
+              </div>
+            )}
+
             <div className="space-y-1">
-              <label className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Conteúdo (Markdown)</label>
+              <label className="text-[10px] font-bold uppercase tracking-widest text-gray-400">
+                {isDailyTask ? 'Observações Adicionais' : 'Conteúdo (Markdown)'}
+              </label>
               <textarea 
                 placeholder="Escreva sua anotação aqui..."
-                className="w-full h-48 bg-gray-50 rounded-2xl px-4 py-4 outline-none focus:ring-2 focus:ring-black/5 transition-all resize-none font-mono text-sm leading-relaxed"
+                className="w-full h-48 bg-gray-50 rounded-2xl px-4 py-4 outline-none focus:ring-2 focus:ring-black/5 transition-all resize-none font-sans text-sm leading-relaxed"
                 value={content}
                 onChange={(e) => setContent(e.target.value)}
-                required
+                required={!isDailyTask}
               />
             </div>
           </form>

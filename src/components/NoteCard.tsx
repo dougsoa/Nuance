@@ -1,5 +1,5 @@
 import { motion } from 'motion/react';
-import { CheckCircle2, Circle, Tag, Calendar, MoreVertical, Edit2, Trash2 } from 'lucide-react';
+import { CheckCircle2, Circle, Tag, Calendar, MoreVertical, Edit2, Trash2, ListTodo, CheckSquare } from 'lucide-react';
 import { Note } from '../types';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -57,11 +57,14 @@ export default function NoteCard({ note, onToggleComplete, onEdit, onDelete }: N
       </div>
 
       <div className="space-y-2">
-        <div className="mb-2">
+        <div className="mb-2 flex items-center gap-2">
            {note.category && (
-            <span className={`inline-flex items-center px-2 py-1 rounded-full text-[10px] font-bold uppercase tracking-tighter ${
-              note.category.toLowerCase() === 'pessoal' ? 'bg-[#FEFAE0] text-primary' : 'bg-stone-100 text-stone-500'
+            <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${
+              note.isDailyTask 
+                ? 'bg-primary/10 text-primary' 
+                : 'bg-stone-100 text-stone-500'
             }`}>
+              {note.isDailyTask && <ListTodo size={11} />}
               {note.category}
             </span>
           )}
@@ -69,9 +72,45 @@ export default function NoteCard({ note, onToggleComplete, onEdit, onDelete }: N
         <h3 className={`text-lg font-bold tracking-tight ${note.completed ? 'line-through text-stone-400' : 'text-stone-900'}`}>
           {note.title}
         </h3>
-        <div className="text-sm text-stone-600 line-clamp-3 prose prose-sm prose-stone max-w-none prose-p:leading-relaxed">
-          <ReactMarkdown>{note.content}</ReactMarkdown>
+
+        {note.isDailyTask && note.tasks && note.tasks.length > 0 && (
+          <div className="space-y-3">
+            <div className="flex items-center justify-between text-[10px] font-bold text-stone-400 uppercase tracking-widest">
+              <span>Progresso</span>
+              <span>
+                {Math.round((note.tasks.filter(t => t.completed).length / note.tasks.length) * 100)}%
+              </span>
+            </div>
+            <div className="h-1 w-full bg-stone-100 rounded-full overflow-hidden">
+              <motion.div 
+                initial={{ width: 0 }}
+                animate={{ width: `${(note.tasks.filter(t => t.completed).length / note.tasks.length) * 100}%` }}
+                className="h-full bg-primary"
+              />
+            </div>
+            <div className="py-2 space-y-1.5">
+              {note.tasks.slice(0, 3).map(task => (
+              <div key={task.id} className="flex items-center gap-2 text-xs text-stone-500">
+                <div className={`shrink-0 ${task.completed ? 'text-primary' : 'text-stone-300'}`}>
+                  {task.completed ? <CheckSquare size={12} /> : <Circle size={12} />}
+                </div>
+                <span className={`truncate ${task.completed ? 'line-through opacity-50' : ''}`}>
+                  {task.text}
+                </span>
+              </div>
+            ))}
+            {note.tasks.length > 3 && (
+              <p className="text-[10px] text-stone-400 font-bold uppercase pl-5">+ {note.tasks.length - 3} tarefas</p>
+            )}
+          </div>
         </div>
+        )}
+
+        {note.content && (
+          <div className="text-sm text-stone-600 line-clamp-2 prose prose-sm prose-stone max-w-none prose-p:leading-relaxed">
+            <ReactMarkdown>{note.content}</ReactMarkdown>
+          </div>
+        )}
       </div>
 
       <div className="mt-6 pt-4 border-t border-stone-100 flex items-center justify-between">

@@ -28,30 +28,38 @@ service cloud.firestore {
     }
 
     // Note validation
-    function isValidNote(data) {
-      return data.keys().hasAll(['title', 'content', 'userId', 'createdAt', 'updatedAt']) &&
-             data.keys().size() >= 5 &&
-             data.title is string && data.title.size() <= 200 &&
+    function isValidNoteSchema(data) {
+      return data.title is string && data.title.size() <= 200 &&
              data.content is string && data.content.size() <= 10000 &&
+             (data.get('category', null) == null || data.category is string) &&
+             (data.get('tags', null) == null || (data.tags is list && data.tags.size() <= 50)) &&
+             (data.get('completed', false) is bool) &&
+             (data.get('isDailyTask', false) is bool) &&
+             (data.get('tasks', []) is list && data.get('tasks', []).size() <= 100);
+    }
+
+    function isValidNoteCreate(data) {
+      return data.keys().hasAll(['title', 'content', 'userId', 'createdAt', 'updatedAt']) &&
              data.userId == request.auth.uid &&
              data.createdAt == request.time &&
-             (data.get('category', null) == null || data.category is string) &&
-             (data.get('tags', null) == null || data.tags is list) &&
-             (data.get('completed', false) is bool);
+             data.updatedAt == request.time &&
+             isValidNoteSchema(data);
     }
 
     match /notes/{noteId} {
-      allow get: if isOwner(existing().userId);
+      allow get: if isOwner(existing().userId) && isValidId(noteId);
       allow list: if isSignedIn() && resource.data.userId == request.auth.uid;
       
-      allow create: if isSignedIn() && isValidNote(incoming());
+      allow create: if isSignedIn() && isValidNoteCreate(incoming()) && isValidId(noteId);
       
-      allow update: if isSignedIn() && isOwner(existing().userId) && (
-        // Allow general updates (content, title, tags, category)
-        (incoming().diff(existing()).affectedKeys().hasOnly(['title', 'content', 'category', 'tags', 'completed', 'updatedAt']) &&
-         incoming().updatedAt == request.time &&
-         incoming().userId == existing().userId &&
-         incoming().createdAt == existing().createdAt)
+      allow update: if isSignedIn() && isOwner(existing().userId) && isValidId(noteId) && (
+        incoming().userId == existing().userId &&
+        incoming().createdAt == existing().createdAt &&
+        incoming().updatedAt == request.time &&
+        isValidNoteSchema(incoming()) &&
+        incoming().diff(existing()).affectedKeys().hasOnly([
+          'title', 'content', 'category', 'tags', 'completed', 'updatedAt', 'tasks', 'isDailyTask'
+        ])
       );
       
       allow delete: if isOwner(existing().userId);

@@ -23,8 +23,10 @@ import { handleFirestoreError } from './lib/utils';
 import NoteCard from './components/NoteCard';
 import NoteModal from './components/NoteModal';
 import Login from './components/Login';
+import { format } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
 import { AnimatePresence, motion } from 'motion/react';
-import { StickyNote, Filter, LayoutGrid, User as UserIcon, LogOut } from 'lucide-react';
+import { StickyNote, Filter, LayoutGrid, User as UserIcon, LogOut, ListTodo, CalendarDays, Plus } from 'lucide-react';
 
 export default function App() {
   const [user, setUser] = useState<User | null>(null);
@@ -77,7 +79,7 @@ export default function App() {
     if (!user) return;
 
     try {
-      if (editingNote) {
+      if (editingNote && editingNote.id) {
         const noteRef = doc(db, 'notes', editingNote.id);
         await updateDoc(noteRef, {
           ...data,
@@ -127,10 +129,30 @@ export default function App() {
     setIsModalOpen(true);
   };
 
+  const openDailyTaskModal = () => {
+    setEditingNote({
+      id: '',
+      title: format(new Date(), 'EEEE, dd/MM', { locale: ptBR }),
+      content: '',
+      category: 'Daily Tasks',
+      isDailyTask: true,
+      tasks: [],
+      completed: false,
+      userId: user?.uid || '',
+      createdAt: null,
+      updatedAt: null,
+    } as any);
+    setIsModalOpen(true);
+  };
+
   const filteredNotes = notes.filter(note => {
     const matchesSearch = note.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
                           note.content.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCategory = !selectedCategory || note.category === selectedCategory;
+    
+    // If no category selected (Notas), show only non-daily tasks
+    // Otherwise, show the specifically selected category
+    const matchesCategory = !selectedCategory ? !note.isDailyTask : note.category === selectedCategory;
+    
     return matchesSearch && matchesCategory;
   });
 
@@ -165,7 +187,7 @@ export default function App() {
 
         <nav className="flex-1 space-y-8">
           <div>
-            <p className="text-[11px] uppercase tracking-widest text-stone-500 font-bold mb-4 px-1">Categorias</p>
+            <p className="text-[11px] uppercase tracking-widest text-stone-500 font-bold mb-4 px-1">Menu</p>
             <ul className="space-y-1.5">
               <li 
                 onClick={() => setSelectedCategory(null)}
@@ -175,32 +197,26 @@ export default function App() {
               >
                 <span className="flex items-center gap-2.5 text-sm">
                   <LayoutGrid size={16} className={!selectedCategory ? 'text-primary' : 'text-stone-400'} />
-                  Todas as notas
+                  Notas
                 </span>
                 <span className="text-[10px] bg-stone-100 px-1.5 py-0.5 rounded-md text-stone-400 font-bold">
-                  {notes.length}
+                  {notes.filter(n => !n.isDailyTask).length}
                 </span>
               </li>
-              {categories.map(cat => {
-                const count = notes.filter(n => n.category === cat).length;
-                return (
-                  <li 
-                    key={cat}
-                    onClick={() => setSelectedCategory(cat)}
-                    className={`flex items-center justify-between px-3 py-2.5 rounded-xl cursor-pointer transition-all ${
-                      selectedCategory === cat ? 'bg-white shadow-sm border border-stone-100 text-stone-900 font-bold' : 'text-stone-600 hover:bg-stone-50'
-                    }`}
-                  >
-                    <span className="flex items-center gap-2.5 text-sm">
-                      <Filter size={16} className={selectedCategory === cat ? 'text-primary' : 'text-stone-400'} />
-                      {cat}
-                    </span>
-                    <span className="text-[10px] bg-stone-100 px-1.5 py-0.5 rounded-md text-stone-400 font-bold">
-                      {count}
-                    </span>
-                  </li>
-                );
-              })}
+              <li 
+                onClick={() => setSelectedCategory('Daily Tasks')}
+                className={`flex items-center justify-between px-3 py-2.5 rounded-xl cursor-pointer transition-all ${
+                  selectedCategory === 'Daily Tasks' ? 'bg-white shadow-sm border border-stone-100 text-stone-900 font-bold' : 'text-stone-600 hover:bg-stone-50'
+                }`}
+              >
+                <span className="flex items-center gap-2.5 text-sm">
+                  <ListTodo size={16} className={selectedCategory === 'Daily Tasks' ? 'text-primary' : 'text-stone-400'} />
+                  Daily Tasks
+                </span>
+                <span className="text-[10px] bg-stone-100 px-1.5 py-0.5 rounded-md text-stone-400 font-bold">
+                  {notes.filter(n => n.category === 'Daily Tasks').length}
+                </span>
+              </li>
             </ul>
           </div>
 
@@ -217,13 +233,6 @@ export default function App() {
         </nav>
 
         <div className="mt-auto pt-6 border-t border-stone-200">
-           <div className="bg-stone-100/50 p-4 rounded-2xl flex items-center gap-3">
-            <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></div>
-            <div>
-              <p className="text-[11px] font-bold text-stone-700 leading-none">Nuvem Sincronizada</p>
-              <p className="text-[9px] text-stone-500 mt-1 uppercase tracking-tighter">Backup automático ativo</p>
-            </div>
-          </div>
           <div className="mt-4 flex items-center gap-3 px-1">
             <div className="w-8 h-8 rounded-full border border-stone-200 bg-stone-200 flex items-center justify-center text-stone-500 overflow-hidden">
               {user?.photoURL ? (
@@ -258,13 +267,22 @@ export default function App() {
             />
           </div>
 
-          <button 
-            onClick={openCreateModal}
-            className="flex items-center gap-2 bg-primary text-white px-6 py-3 rounded-2xl font-bold text-sm shadow-xl shadow-primary/20 hover:opacity-90 active:scale-95 transition-all"
-          >
-            <span className="text-lg">+</span>
-            Nova Anotação
-          </button>
+          <div className="flex items-center gap-3">
+            <button 
+              onClick={openDailyTaskModal}
+              className="flex items-center gap-2.5 bg-white border border-stone-200 text-stone-700 px-5 py-3 rounded-2xl font-bold text-sm shadow-sm hover:bg-stone-50 active:scale-95 transition-all"
+            >
+              <CalendarDays size={18} className="text-primary" />
+              Daily Task
+            </button>
+            <button 
+              onClick={openCreateModal}
+              className="flex items-center gap-2 bg-primary text-white px-6 py-3 rounded-2xl font-bold text-sm shadow-xl shadow-primary/20 hover:opacity-90 active:scale-95 transition-all"
+            >
+              <Plus size={18} />
+              Nova Anotação
+            </button>
+          </div>
         </header>
 
         <section className="flex-1 p-8 pt-0 overflow-y-auto scrollbar-hide">
@@ -273,7 +291,7 @@ export default function App() {
               {selectedCategory || 'Minhas Notas'}
             </h2>
             <p className="text-sm font-medium text-stone-400 mt-1 uppercase tracking-widest">
-              Exibindo {filteredNotes.length} de {notes.length} anotações
+              Exibindo {filteredNotes.length} de {selectedCategory === 'Daily Tasks' ? notes.filter(n => n.isDailyTask).length : notes.filter(n => !n.isDailyTask).length} {selectedCategory === 'Daily Tasks' ? 'Dailys' : 'Anotações'}
             </p>
           </div>
 
@@ -310,6 +328,7 @@ export default function App() {
         onClose={() => setIsModalOpen(false)}
         onSave={handleSaveNote}
         initialData={editingNote}
+        availableNotes={notes.filter(n => !n.isDailyTask && n.id !== editingNote?.id)}
       />
     </div>
   );

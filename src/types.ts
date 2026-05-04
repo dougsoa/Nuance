@@ -1,3 +1,9 @@
+export interface NoteTask {
+  id: string;
+  text: string;
+  completed: boolean;
+}
+
 export interface Note {
   id: string;
   title: string;
@@ -5,6 +11,8 @@ export interface Note {
   category?: string;
   tags?: string[];
   completed: boolean;
+  tasks?: NoteTask[];
+  isDailyTask?: boolean;
   userId: string;
   createdAt: any; // Firestore Timestamp
   updatedAt: any; // Firestore Timestamp

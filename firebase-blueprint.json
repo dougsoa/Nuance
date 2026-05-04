@@ -26,6 +26,15 @@
           "type": "boolean",
           "description": "Whether the task is completed"
         },
+        "tasks": {
+          "type": "array",
+          "description": "Sub-tasks for daily planning",
+          "items": { "type": "object" }
+        },
+        "isDailyTask": {
+          "type": "boolean",
+          "description": "Whether this note is a daily planning task"
+        },
         "userId": {
           "type": "string",
           "description": "UID of the owner"
