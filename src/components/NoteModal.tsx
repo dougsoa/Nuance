@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { X, Tag, Plus, Loader2, CheckCircle2, Circle, Trash2, ListTodo, Search, ArrowRight } from 'lucide-react';
+import { X, Tag, Plus, Loader2, CheckCircle2, Circle, Trash2, ListTodo, Search, ArrowRight, CornerDownRight, ChevronRight, ChevronDown, FileDown } from 'lucide-react';
 import { Note, NoteTask } from '../types';
 import { motion, AnimatePresence } from 'motion/react';
 import { v4 as uuidv4 } from 'uuid';
@@ -13,6 +13,134 @@ interface NoteModalProps {
   availableNotes?: Note[];
 }
 
+interface TaskItemProps {
+  task: NoteTask;
+  onToggle: (id: string) => void;
+  onRemove: (id: string) => void;
+  onAddSubtask: (parentId: string, text: string) => void;
+  onImport: (parentId: string) => void;
+  depth?: number;
+}
+
+function TaskItem({ task, onToggle, onRemove, onAddSubtask, onImport, depth = 0 }: TaskItemProps) {
+  const [isAddingSubtask, setIsAddingSubtask] = useState(false);
+  const [subtaskText, setSubtaskText] = useState('');
+
+  return (
+    <div className="space-y-2">
+      <motion.div 
+        layout
+        initial={{ opacity: 0, y: -5 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.95 }}
+        className={`flex items-center gap-3 p-3 rounded-xl group transition-all ${
+          task.completed ? 'bg-stone-50/50' : 'bg-gray-50 hover:bg-gray-100/50'
+        }`}
+      >
+        <button
+          type="button"
+          onClick={() => onToggle(task.id)}
+          className={`shrink-0 transition-colors ${task.completed ? 'text-green-500' : 'text-gray-300 hover:text-gray-400'}`}
+        >
+          {task.completed ? <CheckCircle2 size={20} /> : <Circle size={20} />}
+        </button>
+        <span className={`flex-1 text-sm font-medium transition-all ${task.completed ? 'text-stone-400 line-through' : 'text-gray-700'}`}>
+          {task.text}
+        </span>
+        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-all shrink-0">
+          <button
+            type="button"
+            onClick={() => setIsAddingSubtask(!isAddingSubtask)}
+            className={`transition-all p-1.5 rounded-lg ${isAddingSubtask ? 'bg-primary/10 text-primary' : 'text-stone-400 hover:text-primary hover:bg-white shadow-sm hover:shadow'}`}
+            title="Adicionar Subtarefa"
+          >
+            <CornerDownRight size={16} />
+          </button>
+          <button
+            type="button"
+            onClick={() => onImport(task.id)}
+            className="p-1.5 text-stone-400 hover:text-primary hover:bg-white rounded-lg shadow-sm hover:shadow transition-all"
+            title="Importar nota como subtarefa"
+          >
+            <FileDown size={16} />
+          </button>
+          <button
+            type="button"
+            onClick={() => onRemove(task.id)}
+            className="p-1.5 text-stone-400 hover:text-red-500 hover:bg-white rounded-lg shadow-sm hover:shadow transition-all"
+          >
+            <Trash2 size={16} />
+          </button>
+        </div>
+      </motion.div>
+
+      <AnimatePresence>
+        {isAddingSubtask && (
+          <motion.div 
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            className="ml-8 pr-3 py-1 flex items-center gap-2 overflow-hidden"
+          >
+            <div className="flex-1 relative">
+               <input 
+                type="text"
+                autoFocus
+                placeholder="Qual a subtarefa?"
+                className="w-full bg-white border border-stone-100 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-stone-300 focus:shadow-sm transition-all"
+                value={subtaskText}
+                onChange={(e) => setSubtaskText(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    if (subtaskText.trim()) {
+                      onAddSubtask(task.id, subtaskText.trim());
+                      setSubtaskText('');
+                      setIsAddingSubtask(false);
+                    }
+                  }
+                  if (e.key === 'Escape') {
+                    setIsAddingSubtask(false);
+                  }
+                }}
+              />
+            </div>
+            <button 
+              type="button"
+              onClick={() => {
+                if (subtaskText.trim()) {
+                  onAddSubtask(task.id, subtaskText.trim());
+                  setSubtaskText('');
+                  setIsAddingSubtask(false);
+                }
+              }}
+              className="bg-primary text-white p-2 rounded-xl transition-all shadow-lg shadow-primary/10 active:scale-95"
+            >
+              <Plus size={18} />
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {task.subtasks && task.subtasks.length > 0 && (
+        <div className="ml-8 space-y-2 border-l border-stone-100 pl-4 mt-1">
+          {task.subtasks.map(sub => (
+            <TaskItem 
+              key={sub.id} 
+              task={sub} 
+              onToggle={onToggle} 
+              onRemove={onRemove} 
+              onAddSubtask={onAddSubtask}
+              onImport={onImport}
+              depth={depth + 1}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function NoteModal({ isOpen, onClose, onSave, onDelete, initialData, availableNotes = [] }: NoteModalProps) {
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
@@ -24,6 +152,7 @@ export default function NoteModal({ isOpen, onClose, onSave, onDelete, initialDa
   const [newTaskText, setNewTaskText] = useState('');
   const [isDailyTask, setIsDailyTask] = useState(false);
   const [isImporting, setIsImporting] = useState(false);
+  const [importParentId, setImportParentId] = useState<string | null>(null);
   const [importSearch, setImportSearch] = useState('');
   const [previewNote, setPreviewNote] = useState<Note | null>(null);
   const [selectedLines, setSelectedLines] = useState<string[]>([]);
@@ -44,26 +173,55 @@ export default function NoteModal({ isOpen, onClose, onSave, onDelete, initialDa
   const handleConfirmImport = () => {
     if (!previewNote) return;
 
-    const newTasks = selectedLines.map(line => ({
-      id: uuidv4(),
-      text: line,
-      completed: false
-    }));
+    if (importParentId) {
+      const addTaskToParent = (list: NoteTask[]): NoteTask[] => {
+        return list.map(t => {
+          if (t.id === importParentId) {
+            const newSubtasks = selectedLines.map(line => ({
+              id: uuidv4(),
+              text: line,
+              completed: false
+            }));
+            return { 
+              ...t, 
+              subtasks: [...(t.subtasks || []), ...newSubtasks] 
+            };
+          }
+          if (t.subtasks) {
+            return { ...t, subtasks: addTaskToParent(t.subtasks) };
+          }
+          return t;
+        });
+      };
+      setTasks(addTaskToParent(tasks));
+    } else {
+      const newTasks = selectedLines.map(line => ({
+        id: uuidv4(),
+        text: line,
+        completed: false
+      }));
 
-    if (newTasks.length > 0) {
-      setTasks([...tasks, ...newTasks]);
-      
-      // Add a note in content for context
-      const importContext = `Notas importadas de: ${previewNote.title}`;
-      if (!content.includes(importContext)) {
-        setContent(prev => prev ? `${prev}\n\n${importContext}` : importContext);
+      if (newTasks.length > 0) {
+        setTasks([...tasks, ...newTasks]);
       }
     }
     
+    // Add a note in content for context
+    const importContext = `Notas importadas de: ${previewNote.title}`;
+    if (!content.includes(importContext)) {
+      setContent(prev => prev ? `${prev}\n\n${importContext}` : importContext);
+    }
+    
     setIsImporting(false);
+    setImportParentId(null);
     setImportSearch('');
     setPreviewNote(null);
     setSelectedLines([]);
+  };
+
+  const handleStartImport = (parentId: string | null = null) => {
+    setImportParentId(parentId);
+    setIsImporting(true);
   };
 
   const toggleLineSelection = (line: string) => {
@@ -108,12 +266,53 @@ export default function NoteModal({ isOpen, onClose, onSave, onDelete, initialDa
     }
   };
 
+  const toggleTaskRecursive = (id: string, currentTasks: NoteTask[]): NoteTask[] => {
+    return currentTasks.map(t => {
+      if (t.id === id) {
+        const newCompleted = !t.completed;
+        // If parent is toggled, toggle all children? Maybe not, keep them independent
+        return { ...t, completed: newCompleted };
+      }
+      if (t.subtasks) {
+        return { ...t, subtasks: toggleTaskRecursive(id, t.subtasks) };
+      }
+      return t;
+    });
+  };
+
   const toggleTask = (id: string) => {
-    setTasks(tasks.map(t => t.id === id ? { ...t, completed: !t.completed } : t));
+    setTasks(toggleTaskRecursive(id, tasks));
+  };
+
+  const removeTaskRecursive = (id: string, currentTasks: NoteTask[]): NoteTask[] => {
+    return currentTasks.filter(t => t.id !== id).map(t => {
+      if (t.subtasks) {
+        return { ...t, subtasks: removeTaskRecursive(id, t.subtasks) };
+      }
+      return t;
+    });
   };
 
   const removeTask = (id: string) => {
-    setTasks(tasks.filter(t => t.id !== id));
+    setTasks(removeTaskRecursive(id, tasks));
+  };
+
+  const addSubtask = (parentId: string, text: string) => {
+    const addTaskToParent = (list: NoteTask[]): NoteTask[] => {
+      return list.map(t => {
+        if (t.id === parentId) {
+          return { 
+            ...t, 
+            subtasks: [...(t.subtasks || []), { id: uuidv4(), text, completed: false }] 
+          };
+        }
+        if (t.subtasks) {
+          return { ...t, subtasks: addTaskToParent(t.subtasks) };
+        }
+        return t;
+      });
+    };
+    setTasks(addTaskToParent(tasks));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -262,6 +461,23 @@ export default function NoteModal({ isOpen, onClose, onSave, onDelete, initialDa
                     <div className="bg-gray-50 rounded-2xl p-4 border border-primary/20 space-y-4">
                       {!previewNote ? (
                         <>
+                          <div className="flex items-center justify-between mb-2">
+                             <div className="flex flex-col">
+                              <span className="text-[10px] font-bold text-gray-400 uppercase">
+                                {importParentId ? 'Importar como subtarefa' : 'Importar como tarefa'}
+                              </span>
+                            </div>
+                            <button 
+                              type="button"
+                              onClick={() => {
+                                setIsImporting(false);
+                                setImportParentId(null);
+                              }}
+                              className="text-stone-400 hover:text-stone-600"
+                            >
+                              <X size={16} />
+                            </button>
+                          </div>
                           <div className="relative">
                             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
                             <input 
@@ -293,7 +509,9 @@ export default function NoteModal({ isOpen, onClose, onSave, onDelete, initialDa
                         <div className="space-y-4">
                           <div className="flex items-center justify-between">
                             <div className="flex flex-col">
-                              <span className="text-[10px] font-bold text-gray-400 uppercase">Importando de</span>
+                              <span className="text-[10px] font-bold text-gray-400 uppercase">
+                                {importParentId ? 'Importando subtarefas de' : 'Importando tarefas de'}
+                              </span>
                               <span className="text-sm font-bold text-gray-900">{previewNote.title}</span>
                             </div>
                             <button 
@@ -335,7 +553,7 @@ export default function NoteModal({ isOpen, onClose, onSave, onDelete, initialDa
                             disabled={selectedLines.length === 0}
                             className="w-full bg-primary text-white py-3 rounded-xl font-bold text-xs uppercase tracking-widest disabled:opacity-50 transition-all shadow-md active:scale-95"
                           >
-                            Adicionar {selectedLines.length} Tarefa(s)
+                            Adicionar {selectedLines.length} Subtarefa(s)
                           </button>
                         </div>
                       )}
@@ -350,13 +568,22 @@ export default function NoteModal({ isOpen, onClose, onSave, onDelete, initialDa
                         onChange={(e) => setNewTaskText(e.target.value)}
                         onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddTask())}
                       />
-                      <button 
-                        type="button"
-                        onClick={handleAddTask}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 bg-primary text-white p-1.5 rounded-lg hover:opacity-90 shadow-sm"
-                      >
-                        <Plus size={16} />
-                      </button>
+                      <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1">
+                        <button 
+                          type="button"
+                          onClick={() => handleStartImport(null)}
+                          className="text-[10px] font-bold text-primary uppercase tracking-widest hover:underline px-2"
+                        >
+                          Importar
+                        </button>
+                        <button 
+                          type="button"
+                          onClick={handleAddTask}
+                          className="bg-primary text-white p-1.5 rounded-lg hover:opacity-90 shadow-sm"
+                        >
+                          <Plus size={16} />
+                        </button>
+                      </div>
                     </div>
                   )}
                 </div>
@@ -364,31 +591,14 @@ export default function NoteModal({ isOpen, onClose, onSave, onDelete, initialDa
                 <div className="space-y-2">
                   <AnimatePresence mode="popLayout">
                     {tasks.map(task => (
-                      <motion.div 
-                        key={task.id}
-                        initial={{ opacity: 0, x: -10 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        exit={{ opacity: 0, scale: 0.95 }}
-                        className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl group transition-all hover:bg-gray-100/50"
-                      >
-                        <button
-                          type="button"
-                          onClick={() => toggleTask(task.id)}
-                          className={`transition-colors ${task.completed ? 'text-primary' : 'text-gray-300 hover:text-gray-400'}`}
-                        >
-                          {task.completed ? <CheckCircle2 size={20} /> : <Circle size={20} />}
-                        </button>
-                        <span className={`flex-1 text-sm font-medium ${task.completed ? 'text-gray-400 line-through' : 'text-gray-700'}`}>
-                          {task.text}
-                        </span>
-                        <button
-                          type="button"
-                          onClick={() => removeTask(task.id)}
-                          className="opacity-0 group-hover:opacity-100 text-gray-300 hover:text-red-500 transition-all p-1"
-                        >
-                          <Trash2 size={16} />
-                        </button>
-                      </motion.div>
+                      <TaskItem 
+                        key={task.id} 
+                        task={task} 
+                        onToggle={toggleTask} 
+                        onRemove={removeTask} 
+                        onAddSubtask={addSubtask}
+                        onImport={handleStartImport}
+                      />
                     ))}
                   </AnimatePresence>
                 </div>

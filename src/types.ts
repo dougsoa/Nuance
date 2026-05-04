@@ -2,6 +2,7 @@ export interface NoteTask {
   id: string;
   text: string;
   completed: boolean;
+  subtasks?: NoteTask[];
 }
 
 export interface Note {
