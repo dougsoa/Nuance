@@ -208,9 +208,9 @@ export default function App() {
              <p className="text-[11px] uppercase tracking-widest text-stone-500 font-bold mb-4 px-1">Ações</p>
              <button 
               onClick={auth.currentUser ? () => auth.signOut() : undefined}
-              className="w-full flex items-center gap-2.5 px-3 py-2 text-stone-600 hover:text-red-500 transition-colors text-sm"
+              className="w-full flex items-center gap-2.5 px-3 py-2 text-stone-600 hover:text-red-500 transition-colors text-sm font-medium"
              >
-               <LayoutGrid size={16} className="text-stone-400" />
+               <LogOut size={16} className="text-stone-400 group-hover:text-red-500 transition-colors" />
                Log Out
              </button>
           </div>
@@ -300,8 +300,8 @@ export default function App() {
         </section>
 
         <footer className="px-8 py-4 bg-white/50 backdrop-blur-sm border-t border-stone-100 flex justify-between items-center text-[10px] font-bold text-stone-400 uppercase tracking-widest">
-           <p>ZenNotes v2.0</p>
-           <p>© 2024 Design System</p>
+           <p>Nuance v1.0</p>
+           <p>© 2026 Design System</p>
         </footer>
       </main>
 

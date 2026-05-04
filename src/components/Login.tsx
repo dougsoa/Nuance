@@ -60,7 +60,7 @@ export default function Login() {
               N
             </div>
             <h1 className="text-4xl font-black text-stone-900 tracking-tighter uppercase leading-none">
-              Zen<span className="text-primary italic">Notes</span>
+              Nuance
             </h1>
             <p className="text-stone-500 text-sm mt-3 font-medium uppercase tracking-widest">
               {isLogin ? 'Bem-vindo de volta' : 'Crie sua conta'}
