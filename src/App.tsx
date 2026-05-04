@@ -22,6 +22,7 @@ import { Note, OperationType } from './types';
 import { handleFirestoreError } from './lib/utils';
 import NoteCard from './components/NoteCard';
 import NoteModal from './components/NoteModal';
+import ConfirmModal from './components/ConfirmModal';
 import Login from './components/Login';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -36,6 +37,8 @@ export default function App() {
   const [editingNote, setEditingNote] = useState<Note | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [isConfirmOpen, setIsConfirmOpen] = useState(false);
+  const [noteIdToDelete, setNoteIdToDelete] = useState<string | null>(null);
 
   // Auth Listener
   useEffect(() => {
@@ -111,11 +114,18 @@ export default function App() {
     }
   };
 
-  const handleDeleteNote = async (id: string) => {
+  const handleDeleteNote = (id: string) => {
+    setNoteIdToDelete(id);
+    setIsConfirmOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!noteIdToDelete) return;
     try {
-      await deleteDoc(doc(db, 'notes', id));
+      await deleteDoc(doc(db, 'notes', noteIdToDelete));
+      setNoteIdToDelete(null);
     } catch (error) {
-      handleFirestoreError(error, OperationType.DELETE, `notes/${id}`);
+      handleFirestoreError(error, OperationType.DELETE, `notes/${noteIdToDelete}`);
     }
   };
 
@@ -336,8 +346,20 @@ export default function App() {
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         onSave={handleSaveNote}
+        onDelete={handleDeleteNote}
         initialData={editingNote}
         availableNotes={notes.filter(n => !n.isDailyTask && n.id !== editingNote?.id)}
+      />
+
+      <ConfirmModal 
+        isOpen={isConfirmOpen}
+        onClose={() => {
+          setIsConfirmOpen(false);
+          setNoteIdToDelete(null);
+        }}
+        onConfirm={confirmDelete}
+        title="Excluir?"
+        message="Esta ação não pode ser desfeita. Você realmente deseja remover este item?"
       />
     </div>
   );

@@ -1,20 +1,51 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { LogIn, UserPlus, Mail, Lock, User as UserIcon, Sparkles, Loader2 } from 'lucide-react';
-import { loginWithEmail, registerWithEmail } from '../lib/firebase';
+import { LogIn, UserPlus, Mail, Lock, User as UserIcon, Sparkles, Loader2, KeyRound, ArrowLeft, CheckCircle2 } from 'lucide-react';
+import { loginWithEmail, registerWithEmail, resetPassword } from '../lib/firebase';
 
 export default function Login() {
   const [isLogin, setIsLogin] = useState(true);
+  const [isForgotPassword, setIsForgotPassword] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [successMessage, setSuccessMessage] = useState('');
+
+  const handleResetPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email) {
+      setError('Por favor, informe seu e-mail para recuperar a senha.');
+      return;
+    }
+
+    setLoading(true);
+    setError('');
+    setSuccessMessage('');
+
+    try {
+      await resetPassword(email);
+      setSuccessMessage('E-mail de recuperação enviado! Verifique sua caixa de entrada.');
+      setLoading(false);
+    } catch (err: any) {
+      console.error(err);
+      let message = 'Erro ao enviar e-mail de recuperação.';
+      if (err.code === 'auth/user-not-found') {
+        message = 'Não existe uma conta com este e-mail.';
+      } else if (err.code === 'auth/invalid-email') {
+        message = 'O formato do e-mail é inválido.';
+      }
+      setError(message);
+      setLoading(false);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError('');
+    setSuccessMessage('');
 
     try {
       if (isLogin) {
@@ -44,6 +75,92 @@ export default function Login() {
       setLoading(false);
     }
   };
+
+  if (isForgotPassword) {
+    return (
+      <div className="min-h-screen bg-natural-bg flex items-center justify-center p-6 font-sans">
+        <div className="relative w-full max-w-md">
+          <div className="absolute -inset-1 bg-gradient-to-r from-primary/20 to-primary/10 rounded-[40px] blur-xl transition duration-1000"></div>
+          
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="relative bg-white rounded-[40px] border border-stone-200 p-10 shadow-2xl shadow-stone-200/50"
+          >
+            <button 
+              onClick={() => {
+                setIsForgotPassword(false);
+                setError('');
+                setSuccessMessage('');
+              }}
+              className="absolute left-8 top-8 text-stone-400 hover:text-stone-900 transition-colors"
+            >
+              <ArrowLeft size={20} />
+            </button>
+
+            <div className="text-center mb-8">
+              <div className="w-16 h-16 bg-stone-100 rounded-2xl flex items-center justify-center text-primary mx-auto mb-6">
+                <KeyRound size={32} />
+              </div>
+              <h2 className="text-2xl font-black text-stone-900 tracking-tight uppercase">
+                Recuperar Senha
+              </h2>
+              <p className="text-stone-500 text-xs mt-2 font-medium uppercase tracking-widest max-w-[200px] mx-auto">
+                Enviaremos um link para o seu e-mail
+              </p>
+            </div>
+
+            <form onSubmit={handleResetPassword} className="space-y-6">
+              <div className="space-y-1">
+                <label className="text-[10px] font-bold uppercase tracking-widest text-stone-400 ml-1">Seu E-mail</label>
+                <div className="relative">
+                  <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-stone-300" size={18} />
+                  <input 
+                    type="email"
+                    placeholder="exemplo@email.com"
+                    required
+                    className="w-full bg-stone-50 border border-stone-100 rounded-2xl py-3.5 pl-12 pr-4 text-sm outline-none focus:border-primary focus:bg-white transition-all"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                  />
+                </div>
+              </div>
+
+              {error && (
+                <p className="text-red-500 text-[11px] font-bold uppercase tracking-tight text-center bg-red-50 py-2 rounded-xl border border-red-100">
+                  {error}
+                </p>
+              )}
+
+              {successMessage && (
+                <div className="flex flex-col items-center gap-2 text-green-600 text-[11px] font-bold uppercase tracking-tight text-center bg-green-50 p-4 rounded-xl border border-green-100">
+                  <CheckCircle2 size={24} />
+                  <span>{successMessage}</span>
+                </div>
+              )}
+
+              {!successMessage && (
+                <button 
+                  type="submit"
+                  disabled={loading}
+                  className="w-full bg-primary text-white py-4 rounded-2xl font-bold flex items-center justify-center gap-2 hover:opacity-95 transition-all active:scale-95 shadow-lg shadow-primary/20 disabled:opacity-50"
+                >
+                  {loading ? (
+                    <Loader2 className="animate-spin" size={20} />
+                  ) : (
+                    <>
+                      <Mail size={18} />
+                      <span>Enviar Link</span>
+                    </>
+                  )}
+                </button>
+              )}
+            </form>
+          </motion.div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-natural-bg flex items-center justify-center p-6 font-sans">
@@ -120,6 +237,21 @@ export default function Login() {
                   onChange={(e) => setPassword(e.target.value)}
                 />
               </div>
+              {isLogin && (
+                <div className="flex justify-end pr-1">
+                  <button 
+                    type="button"
+                    onClick={() => {
+                      setIsForgotPassword(true);
+                      setError('');
+                      setSuccessMessage('');
+                    }}
+                    className="text-[10px] font-bold text-stone-400 hover:text-primary uppercase tracking-widest transition-colors"
+                  >
+                    Esqueceu a senha?
+                  </button>
+                </div>
+              )}
             </div>
 
             {error && (

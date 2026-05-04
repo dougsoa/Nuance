@@ -7,7 +7,8 @@ import {
   signInAnonymously,
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
-  updateProfile
+  updateProfile,
+  sendPasswordResetEmail
 } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
 import firebaseConfig from '../../firebase-applet-config.json';
@@ -23,6 +24,8 @@ export const registerWithEmail = async (email: string, pass: string, name: strin
   await updateProfile(res.user, { displayName: name });
   return res;
 };
+
+export const resetPassword = (email: string) => sendPasswordResetEmail(auth, email);
 
 export const loginAnonymously = () => signInAnonymously(auth);
 

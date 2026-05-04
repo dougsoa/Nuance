@@ -8,11 +8,12 @@ interface NoteModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSave: (data: Partial<Note>) => Promise<void>;
+  onDelete?: (id: string) => void;
   initialData?: Note | null;
   availableNotes?: Note[];
 }
 
-export default function NoteModal({ isOpen, onClose, onSave, initialData, availableNotes = [] }: NoteModalProps) {
+export default function NoteModal({ isOpen, onClose, onSave, onDelete, initialData, availableNotes = [] }: NoteModalProps) {
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [category, setCategory] = useState('');
@@ -408,7 +409,20 @@ export default function NoteModal({ isOpen, onClose, onSave, initialData, availa
             </div>
           </form>
 
-          <div className="flex-shrink-0 flex justify-end p-8 border-t border-gray-100 bg-gray-50/50">
+          <div className="flex-shrink-0 flex justify-between p-8 border-t border-gray-100 bg-gray-50/50">
+            {initialData && initialData.id && onDelete ? (
+              <button
+                type="button"
+                onClick={() => {
+                  onDelete(initialData.id);
+                  onClose();
+                }}
+                className="flex items-center gap-2 px-6 py-3 rounded-2xl font-bold text-xs uppercase tracking-widest text-red-500 hover:bg-red-50 transition-all border border-transparent"
+              >
+                <Trash2 size={18} />
+                Excluir
+              </button>
+            ) : <div />}
             <button 
               onClick={handleSubmit}
               disabled={loading}
