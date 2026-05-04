@@ -17,14 +17,13 @@ import {
   serverTimestamp,
   orderBy
 } from 'firebase/firestore';
-import { auth, db } from './lib/firebase';
+import { auth, db, loginAnonymously } from './lib/firebase';
 import { Note, OperationType } from './types';
 import { handleFirestoreError } from './lib/utils';
 import NoteCard from './components/NoteCard';
 import NoteModal from './components/NoteModal';
-import Login from './components/Login';
 import { AnimatePresence, motion } from 'motion/react';
-import { StickyNote, Filter, LayoutGrid, List } from 'lucide-react';
+import { StickyNote, Filter, LayoutGrid, User as UserIcon, LogOut } from 'lucide-react';
 
 export default function App() {
   const [user, setUser] = useState<User | null>(null);
@@ -37,9 +36,17 @@ export default function App() {
 
   // Auth Listener
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (u) => {
-      setUser(u);
-      setLoading(false);
+    const unsubscribe = onAuthStateChanged(auth, async (u) => {
+      if (!u) {
+        try {
+          await loginAnonymously();
+        } catch (err) {
+          console.error("Failed anonymous login", err);
+        }
+      } else {
+        setUser(u);
+        setLoading(false);
+      }
     });
     return unsubscribe;
   }, []);
@@ -133,19 +140,17 @@ export default function App() {
 
   const categories = Array.from(new Set(notes.map(n => n.category).filter(Boolean)));
 
-  if (loading) {
+  if (loading || !user) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="min-h-screen flex items-center justify-center bg-natural-bg">
         <motion.div 
           animate={{ rotate: 360 }}
           transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
-          className="w-10 h-10 border-4 border-black border-t-transparent rounded-full"
+          className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full"
         />
       </div>
     );
   }
-
-  if (!user) return <Login />;
 
   return (
     <div className="flex h-screen bg-natural-bg font-sans text-stone-800 overflow-hidden">
@@ -220,15 +225,20 @@ export default function App() {
             </div>
           </div>
           <div className="mt-4 flex items-center gap-3 px-1">
-            <img 
-              src={user?.photoURL || ''} 
-              className="w-8 h-8 rounded-full border border-stone-200" 
-              alt={user?.displayName || ''} 
-              referrerPolicy="no-referrer"
-            />
+            <div className="w-8 h-8 rounded-full border border-stone-200 bg-stone-200 flex items-center justify-center text-stone-500 overflow-hidden">
+              {user?.photoURL ? (
+                <img src={user.photoURL} alt="" referrerPolicy="no-referrer" />
+              ) : (
+                <UserIcon size={16} />
+              )}
+            </div>
             <div className="flex-1 min-w-0">
-               <p className="text-[11px] font-bold text-stone-900 truncate uppercase tracking-tight">{user?.displayName}</p>
-               <p className="text-[9px] text-stone-500 truncate">{user?.email}</p>
+               <p className="text-[11px] font-bold text-stone-900 truncate uppercase tracking-tight">
+                 {user?.isAnonymous ? 'Visitante' : user?.displayName}
+               </p>
+               <p className="text-[9px] text-stone-500 truncate">
+                 {user?.isAnonymous ? 'Modo Privado' : user?.email}
+               </p>
             </div>
           </div>
         </div>
