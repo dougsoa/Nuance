@@ -24,18 +24,26 @@ export default function NoteModal({ isOpen, onClose, onSave, initialData, availa
   const [isDailyTask, setIsDailyTask] = useState(false);
   const [isImporting, setIsImporting] = useState(false);
   const [importSearch, setImportSearch] = useState('');
+  const [previewNote, setPreviewNote] = useState<Note | null>(null);
+  const [selectedLines, setSelectedLines] = useState<string[]>([]);
 
   const filteredImportNotes = availableNotes.filter(n => 
     n.title.toLowerCase().includes(importSearch.toLowerCase())
   );
 
-  const handleImportNote = (note: Note) => {
+  const handleSelectNoteForImport = (note: Note) => {
+    setPreviewNote(note);
     const lines = note.content
       .split('\n')
       .map(line => line.trim())
       .filter(line => line.length > 0);
-    
-    const newTasks = lines.map(line => ({
+    setSelectedLines(lines);
+  };
+
+  const handleConfirmImport = () => {
+    if (!previewNote) return;
+
+    const newTasks = selectedLines.map(line => ({
       id: uuidv4(),
       text: line,
       completed: false
@@ -43,18 +51,24 @@ export default function NoteModal({ isOpen, onClose, onSave, initialData, availa
 
     if (newTasks.length > 0) {
       setTasks([...tasks, ...newTasks]);
-    } else {
-      setTasks([...tasks, { id: uuidv4(), text: note.title, completed: false }]);
-    }
-
-    // Add a note in content for context
-    const importContext = `Notas importadas de: ${note.title}`;
-    if (!content.includes(importContext)) {
-      setContent(prev => prev ? `${prev}\n\n${importContext}` : importContext);
+      
+      // Add a note in content for context
+      const importContext = `Notas importadas de: ${previewNote.title}`;
+      if (!content.includes(importContext)) {
+        setContent(prev => prev ? `${prev}\n\n${importContext}` : importContext);
+      }
     }
     
     setIsImporting(false);
     setImportSearch('');
+    setPreviewNote(null);
+    setSelectedLines([]);
+  };
+
+  const toggleLineSelection = (line: string) => {
+    setSelectedLines(prev => 
+      prev.includes(line) ? prev.filter(l => l !== line) : [...prev, line]
+    );
   };
 
   useEffect(() => {
@@ -245,32 +259,85 @@ export default function NoteModal({ isOpen, onClose, onSave, initialData, availa
 
                   {isImporting ? (
                     <div className="bg-gray-50 rounded-2xl p-4 border border-primary/20 space-y-4">
-                      <div className="relative">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
-                        <input 
-                          type="text"
-                          placeholder="Pesquisar notas para importar..."
-                          className="w-full bg-white rounded-xl pl-10 pr-4 py-2 text-sm outline-none border border-gray-100 focus:border-primary/30 transition-all"
-                          value={importSearch}
-                          onChange={(e) => setImportSearch(e.target.value)}
-                        />
-                      </div>
-                      <div className="max-h-48 overflow-y-auto space-y-1 pr-1 custom-scrollbar">
-                        {filteredImportNotes.map(note => (
+                      {!previewNote ? (
+                        <>
+                          <div className="relative">
+                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
+                            <input 
+                              type="text"
+                              placeholder="Pesquisar notas para importar..."
+                              className="w-full bg-white rounded-xl pl-10 pr-4 py-2 text-sm outline-none border border-gray-100 focus:border-primary/30 transition-all"
+                              value={importSearch}
+                              onChange={(e) => setImportSearch(e.target.value)}
+                            />
+                          </div>
+                          <div className="max-h-48 overflow-y-auto space-y-1 pr-1 custom-scrollbar">
+                            {filteredImportNotes.map(note => (
+                              <button
+                                key={note.id}
+                                type="button"
+                                onClick={() => handleSelectNoteForImport(note)}
+                                className="w-full flex items-center justify-between p-2 rounded-lg hover:bg-white text-left group transition-all"
+                              >
+                                <span className="text-sm font-medium text-gray-700 truncate">{note.title}</span>
+                                <ArrowRight size={14} className="text-primary opacity-0 group-hover:opacity-100 transition-all" />
+                              </button>
+                            ))}
+                            {filteredImportNotes.length === 0 && (
+                              <p className="text-center py-4 text-xs text-gray-400 font-medium italic">Nenhuma nota disponível</p>
+                            )}
+                          </div>
+                        </>
+                      ) : (
+                        <div className="space-y-4">
+                          <div className="flex items-center justify-between">
+                            <div className="flex flex-col">
+                              <span className="text-[10px] font-bold text-gray-400 uppercase">Importando de</span>
+                              <span className="text-sm font-bold text-gray-900">{previewNote.title}</span>
+                            </div>
+                            <button 
+                              type="button"
+                              onClick={() => setPreviewNote(null)}
+                              className="text-[10px] font-bold text-primary uppercase"
+                            >
+                              Voltar
+                            </button>
+                          </div>
+                          
+                          <div className="max-h-48 overflow-y-auto space-y-2 pr-1 custom-scrollbar">
+                            {previewNote.content.split('\n').filter(l => l.trim()).map((line, i) => (
+                              <button
+                                key={i}
+                                type="button"
+                                onClick={() => toggleLineSelection(line.trim())}
+                                className={`w-full flex items-center gap-3 p-2.5 rounded-xl text-left transition-all ${
+                                  selectedLines.includes(line.trim()) 
+                                    ? 'bg-primary/5 border border-primary/20' 
+                                    : 'bg-white border border-transparent hover:border-gray-200'
+                                }`}
+                              >
+                                <div className={`w-5 h-5 rounded-md border flex items-center justify-center transition-all ${
+                                  selectedLines.includes(line.trim())
+                                    ? 'bg-primary border-primary text-white'
+                                    : 'bg-gray-50 border-gray-200 text-transparent'
+                                }`}>
+                                  <Plus size={14} />
+                                </div>
+                                <span className="text-sm text-gray-700 leading-tight">{line}</span>
+                              </button>
+                            ))}
+                          </div>
+
                           <button
-                            key={note.id}
                             type="button"
-                            onClick={() => handleImportNote(note)}
-                            className="w-full flex items-center justify-between p-2 rounded-lg hover:bg-white text-left group transition-all"
+                            onClick={handleConfirmImport}
+                            disabled={selectedLines.length === 0}
+                            className="w-full bg-primary text-white py-3 rounded-xl font-bold text-xs uppercase tracking-widest disabled:opacity-50 transition-all shadow-md active:scale-95"
                           >
-                            <span className="text-sm font-medium text-gray-700 truncate">{note.title}</span>
-                            <ArrowRight size={14} className="text-primary opacity-0 group-hover:opacity-100 transition-all" />
+                            Adicionar {selectedLines.length} Tarefa(s)
                           </button>
-                        ))}
-                        {filteredImportNotes.length === 0 && (
-                          <p className="text-center py-4 text-xs text-gray-400 font-medium italic">Nenhuma nota disponível</p>
-                        )}
-                      </div>
+                        </div>
+                      )}
                     </div>
                   ) : (
                     <div className="relative">

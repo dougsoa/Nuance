@@ -22,7 +22,8 @@ export default function NoteCard({ note, onToggleComplete, onEdit, onDelete }: N
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, scale: 0.95 }}
       whileHover={{ y: -4 }}
-      className={`group relative bg-white border rounded-3xl p-6 shadow-sm hover:shadow-md transition-all ${
+      onClick={() => onEdit(note)}
+      className={`group relative bg-white border rounded-3xl p-6 shadow-sm hover:shadow-md transition-all cursor-pointer ${
         note.completed 
           ? 'opacity-60 border-stone-200 border-dashed bg-stone-50/50' 
           : 'border-stone-200 hover:border-stone-300'
@@ -30,7 +31,10 @@ export default function NoteCard({ note, onToggleComplete, onEdit, onDelete }: N
     >
       <div className="flex justify-between items-start mb-4">
         <button 
-          onClick={() => onToggleComplete(note.id, note.completed)}
+          onClick={(e) => {
+            e.stopPropagation();
+            onToggleComplete(note.id, note.completed);
+          }}
           className={`w-6 h-6 rounded-full border-2 transition-all flex items-center justify-center ${
             note.completed 
               ? 'border-green-500 text-green-500' 
@@ -42,13 +46,19 @@ export default function NoteCard({ note, onToggleComplete, onEdit, onDelete }: N
 
         <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
           <button 
-            onClick={() => onEdit(note)}
+            onClick={(e) => {
+              e.stopPropagation();
+              onEdit(note);
+            }}
             className="p-1.5 text-stone-400 hover:text-primary hover:bg-stone-100 rounded-lg transition-all"
           >
             <Edit2 size={16} />
           </button>
           <button 
-            onClick={() => onDelete(note.id)}
+            onClick={(e) => {
+              e.stopPropagation();
+              onDelete(note.id);
+            }}
             className="p-1.5 text-stone-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all"
           >
             <Trash2 size={16} />
