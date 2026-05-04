@@ -17,11 +17,12 @@ import {
   serverTimestamp,
   orderBy
 } from 'firebase/firestore';
-import { auth, db, loginAnonymously } from './lib/firebase';
+import { auth, db } from './lib/firebase';
 import { Note, OperationType } from './types';
 import { handleFirestoreError } from './lib/utils';
 import NoteCard from './components/NoteCard';
 import NoteModal from './components/NoteModal';
+import Login from './components/Login';
 import { AnimatePresence, motion } from 'motion/react';
 import { StickyNote, Filter, LayoutGrid, User as UserIcon, LogOut } from 'lucide-react';
 
@@ -36,17 +37,12 @@ export default function App() {
 
   // Auth Listener
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (u) => {
-      if (!u) {
-        try {
-          await loginAnonymously();
-        } catch (err) {
-          console.error("Failed anonymous login", err);
-        }
-      } else {
-        setUser(u);
-        setLoading(false);
-      }
+    const unsubscribe = onAuthStateChanged(auth, (u) => {
+      setUser(u);
+      setLoading(false);
+    }, (error) => {
+      console.error("Auth observer error", error);
+      setLoading(false);
     });
     return unsubscribe;
   }, []);
@@ -140,7 +136,7 @@ export default function App() {
 
   const categories = Array.from(new Set(notes.map(n => n.category).filter(Boolean)));
 
-  if (loading || !user) {
+  if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-natural-bg">
         <motion.div 
@@ -150,6 +146,10 @@ export default function App() {
         />
       </div>
     );
+  }
+
+  if (!user) {
+    return <Login />;
   }
 
   return (
@@ -234,10 +234,10 @@ export default function App() {
             </div>
             <div className="flex-1 min-w-0">
                <p className="text-[11px] font-bold text-stone-900 truncate uppercase tracking-tight">
-                 {user?.isAnonymous ? 'Visitante' : user?.displayName}
+                 {user?.displayName || 'Usuário'}
                </p>
                <p className="text-[9px] text-stone-500 truncate">
-                 {user?.isAnonymous ? 'Modo Privado' : user?.email}
+                 {user?.email}
                </p>
             </div>
           </div>
