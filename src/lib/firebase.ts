@@ -23,20 +23,3 @@ export const loginAnonymously = () => signInAnonymously(auth);
 
 export const logout = () => signOut(auth);
 
-// Critical: Validate connection to Firestore
-async function testConnection() {
-  try {
-    // Attempting to read a non-existent doc just to check connectivity
-    await getDocFromServer(doc(db, 'system', 'connection-test'));
-    console.log("Firestore connection validated.");
-  } catch (error) {
-    if (error instanceof Error && error.message.includes('offline')) {
-      console.error("Please check your Firebase configuration or internet connection.");
-    } else {
-      // Missing permissions is also a sign of connection (but rules limited)
-      console.log("Firestore connection check completed (permissions might limit direct test).");
-    }
-  }
-}
-
-testConnection();
