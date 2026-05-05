@@ -18,24 +18,25 @@ import {
   orderBy
 } from 'firebase/firestore';
 import { auth, db } from './lib/firebase';
-import { Note, OperationType } from './types';
+import { Note, OperationType, Process, NoteTask } from './types';
 import { handleFirestoreError } from './lib/utils';
 import NoteCard from './components/NoteCard';
 import NoteModal from './components/NoteModal';
 import ConfirmModal from './components/ConfirmModal';
 import Login from './components/Login';
+import Dashboard from './components/Dashboard';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { AnimatePresence, motion } from 'motion/react';
-import { StickyNote, Filter, LayoutGrid, User as UserIcon, LogOut, ListTodo, CalendarDays, Plus, X, GitBranch } from 'lucide-react';
+import { StickyNote, Filter, LayoutGrid, User as UserIcon, LogOut, ListTodo, CalendarDays, Plus, X, GitBranch, LayoutDashboard } from 'lucide-react';
 import ProcessModule from './components/ProcessModule';
 
 export default function App() {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [notes, setNotes] = useState<Note[]>([]);
-  const [activeView, setActiveView] = useState<'notes' | 'processes'>('notes');
-  const [processesCount, setProcessesCount] = useState(0);
+  const [processes, setProcesses] = useState<Process[]>([]);
+  const [activeView, setActiveView] = useState<'dashboard' | 'notes' | 'processes'>('dashboard');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingNote, setEditingNote] = useState<Note | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
@@ -81,20 +82,25 @@ export default function App() {
     return unsubscribe;
   }, [user]);
 
-  // Processes Count Listener
+  // Processes Real-time Listener
   useEffect(() => {
     if (!user) {
-      setProcessesCount(0);
+      setProcesses([]);
       return;
     }
 
     const q = query(
       collection(db, 'processes'), 
-      where('userId', '==', user.uid)
+      where('userId', '==', user.uid),
+      orderBy('createdAt', 'desc')
     );
 
     const unsubscribe = onSnapshot(q, (snapshot) => {
-      setProcessesCount(snapshot.size);
+      const data = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      })) as Process[];
+      setProcesses(data);
     }, (error) => {
       handleFirestoreError(error, OperationType.LIST, 'processes');
     });
@@ -123,6 +129,34 @@ export default function App() {
       }
     } catch (error) {
       handleFirestoreError(error, editingNote ? OperationType.UPDATE : OperationType.CREATE, 'notes');
+    }
+  };
+
+  const handleToggleTask = async (noteId: string, taskId: string) => {
+    const note = notes.find(n => n.id === noteId);
+    if (!note || !note.tasks) return;
+
+    const toggleInList = (list: NoteTask[]): NoteTask[] => {
+      return list.map(t => {
+        if (t.id === taskId) {
+          return { ...t, completed: !t.completed };
+        }
+        if (t.subtasks) {
+          return { ...t, subtasks: toggleInList(t.subtasks) };
+        }
+        return t;
+      });
+    };
+
+    const newTasks = toggleInList(note.tasks);
+    try {
+      const noteRef = doc(db, 'notes', noteId);
+      await updateDoc(noteRef, { 
+        tasks: newTasks,
+        updatedAt: serverTimestamp() 
+      });
+    } catch (error) {
+      handleFirestoreError(error, OperationType.UPDATE, `notes/${noteId}`);
     }
   };
 
@@ -226,6 +260,17 @@ export default function App() {
             <p className="text-[11px] uppercase tracking-widest text-stone-500 font-bold mb-4 px-1">Menu</p>
             <ul className="space-y-1.5">
               <li 
+                onClick={() => setActiveView('dashboard')}
+                className={`flex items-center justify-between px-3 py-2.5 rounded-xl cursor-pointer transition-all ${
+                  activeView === 'dashboard' ? 'bg-white shadow-sm border border-stone-100 text-stone-900 font-bold' : 'text-stone-600 hover:bg-stone-50'
+                }`}
+              >
+                <span className="flex items-center gap-2.5 text-sm">
+                  <LayoutDashboard size={16} className={activeView === 'dashboard' ? 'text-primary' : 'text-stone-400'} />
+                  Dashboard
+                </span>
+              </li>
+              <li 
                 onClick={() => {
                   setSelectedCategory(null);
                   setActiveView('notes');
@@ -237,9 +282,6 @@ export default function App() {
                 <span className="flex items-center gap-2.5 text-sm">
                   <LayoutGrid size={16} className={activeView === 'notes' && !selectedCategory ? 'text-primary' : 'text-stone-400'} />
                   Notas
-                </span>
-                <span className="text-[10px] bg-stone-100 px-1.5 py-0.5 rounded-md text-stone-400 font-bold">
-                  {notes.filter(n => !n.isDailyTask).length}
                 </span>
               </li>
               <li 
@@ -255,9 +297,6 @@ export default function App() {
                   <ListTodo size={16} className={activeView === 'notes' && selectedCategory === 'Daily Tasks' ? 'text-primary' : 'text-stone-400'} />
                   Daily Tasks
                 </span>
-                <span className="text-[10px] bg-stone-100 px-1.5 py-0.5 rounded-md text-stone-400 font-bold">
-                  {notes.filter(n => n.category === 'Daily Tasks').length}
-                </span>
               </li>
               <li 
                 onClick={() => setActiveView('processes')}
@@ -269,22 +308,35 @@ export default function App() {
                   <GitBranch size={16} className={activeView === 'processes' ? 'text-primary' : 'text-stone-400'} />
                   Processos
                 </span>
-                <span className="text-[10px] bg-stone-100 px-1.5 py-0.5 rounded-md text-stone-400 font-bold">
-                  {processesCount}
-                </span>
               </li>
             </ul>
           </div>
 
           <div>
              <p className="text-[11px] uppercase tracking-widest text-stone-500 font-bold mb-4 px-1">Ações</p>
-             <button 
-              onClick={auth.currentUser ? () => auth.signOut() : undefined}
-              className="w-full flex items-center gap-2.5 px-3 py-2 text-stone-600 hover:text-red-500 transition-colors text-sm font-medium"
-             >
-               <LogOut size={16} className="text-stone-400 group-hover:text-red-500 transition-colors" />
-               Log Out
-             </button>
+             <ul className="space-y-1.5">
+                <li 
+                  onClick={openCreateModal}
+                  className="flex items-center gap-2.5 px-3 py-2.5 text-stone-600 hover:bg-stone-50 rounded-xl cursor-pointer text-sm font-medium transition-all"
+                >
+                  <Plus size={16} className="text-stone-400" />
+                  Nova Anotação
+                </li>
+                <li 
+                  onClick={openDailyTaskModal}
+                  className="flex items-center gap-2.5 px-3 py-2.5 text-stone-600 hover:bg-stone-50 rounded-xl cursor-pointer text-sm font-medium transition-all"
+                >
+                  <ListTodo size={16} className="text-stone-400" />
+                  Nova Tarefa
+                </li>
+                <li 
+                  onClick={() => setActiveView('processes')}
+                  className="flex items-center gap-2.5 px-3 py-2.5 text-stone-600 hover:bg-stone-50 rounded-xl cursor-pointer text-sm font-medium transition-all"
+                >
+                  <GitBranch size={16} className="text-stone-400" />
+                  Mapear Processo
+                </li>
+             </ul>
           </div>
         </nav>
 
@@ -305,13 +357,36 @@ export default function App() {
                  {user?.email}
                </p>
             </div>
+            <button 
+              onClick={() => auth.signOut()}
+              className="p-2 text-stone-400 hover:text-red-500 transition-colors shrink-0"
+              title="Sair"
+            >
+              <LogOut size={18} />
+            </button>
           </div>
         </div>
       </aside>
 
       {/* Main Content */}
-      {activeView === 'notes' ? (
-        <main className="flex-1 flex flex-col min-w-0">
+      {activeView === 'dashboard' ? (
+        <Dashboard 
+          notes={notes} 
+          processes={processes} 
+          user={user}
+          onEditNote={openEditModal}
+          onToggleNoteComplete={handleToggleComplete}
+          onToggleTask={handleToggleTask}
+          onCreateNote={openCreateModal}
+          onCreateTask={openDailyTaskModal}
+          openProcesses={() => setActiveView('processes')}
+          openNotes={(cat) => {
+            setSelectedCategory(cat);
+            setActiveView('notes');
+          }}
+        />
+      ) : activeView === 'notes' ? (
+        <main className="flex-1 flex flex-col min-w-0 overflow-hidden">
           <header className="p-8 flex items-center justify-between gap-8">
             <div className="flex-1 max-w-xl relative group">
               <StickyNote className="absolute left-4 top-1/2 -translate-y-1/2 text-stone-400 group-focus-within:text-primary transition-colors" size={18} />

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { X, Tag, Plus, Loader2, CheckCircle2, Circle, Trash2, ListTodo, Search, ArrowRight, CornerDownRight, ChevronRight, ChevronDown, FileDown } from 'lucide-react';
+import { X, Tag, Plus, Loader2, CheckCircle2, Circle, Trash2, ListTodo, Search, ArrowRight, CornerDownRight, ChevronRight, ChevronDown, FileDown, Clock } from 'lucide-react';
 import { Note, NoteTask } from '../types';
 import { motion, AnimatePresence } from 'motion/react';
 import { v4 as uuidv4 } from 'uuid';
@@ -19,12 +19,16 @@ interface TaskItemProps {
   onRemove: (id: string) => void;
   onAddSubtask: (parentId: string, text: string) => void;
   onImport: (parentId: string) => void;
+  onUpdateTask?: (id: string, updates: Partial<NoteTask>) => void;
   depth?: number;
 }
 
-function TaskItem({ task, onToggle, onRemove, onAddSubtask, onImport, depth = 0 }: TaskItemProps) {
+function TaskItem({ task, onToggle, onRemove, onAddSubtask, onImport, onUpdateTask, depth = 0 }: TaskItemProps) {
   const [isAddingSubtask, setIsAddingSubtask] = useState(false);
   const [subtaskText, setSubtaskText] = useState('');
+  const [isEditingMeta, setIsEditingMeta] = useState(false);
+
+  const priorities: ('baixa' | 'média' | 'alta')[] = ['baixa', 'média', 'alta'];
 
   return (
     <div className="space-y-2">
@@ -33,45 +37,111 @@ function TaskItem({ task, onToggle, onRemove, onAddSubtask, onImport, depth = 0 
         initial={{ opacity: 0, y: -5 }}
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.95 }}
-        className={`flex items-center gap-3 p-3 rounded-xl group transition-all ${
+        className={`flex flex-col gap-2 p-3 rounded-xl group transition-all ${
           task.completed ? 'bg-stone-50/50' : 'bg-gray-50 hover:bg-gray-100/50'
         }`}
       >
-        <button
-          type="button"
-          onClick={() => onToggle(task.id)}
-          className={`shrink-0 transition-colors ${task.completed ? 'text-green-500' : 'text-gray-300 hover:text-gray-400'}`}
-        >
-          {task.completed ? <CheckCircle2 size={20} /> : <Circle size={20} />}
-        </button>
-        <span className={`flex-1 text-sm font-medium transition-all ${task.completed ? 'text-stone-400 line-through' : 'text-gray-700'}`}>
-          {task.text}
-        </span>
-        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-all shrink-0">
+        <div className="flex items-center gap-3">
           <button
             type="button"
-            onClick={() => setIsAddingSubtask(!isAddingSubtask)}
-            className={`transition-all p-1.5 rounded-lg ${isAddingSubtask ? 'bg-primary/10 text-primary' : 'text-stone-400 hover:text-primary hover:bg-white shadow-sm hover:shadow'}`}
-            title="Adicionar Subtarefa"
+            onClick={() => onToggle(task.id)}
+            className={`shrink-0 transition-colors ${task.completed ? 'text-green-500' : 'text-gray-300 hover:text-gray-400'}`}
           >
-            <CornerDownRight size={16} />
+            {task.completed ? <CheckCircle2 size={20} /> : <Circle size={20} />}
           </button>
-          <button
-            type="button"
-            onClick={() => onImport(task.id)}
-            className="p-1.5 text-stone-400 hover:text-primary hover:bg-white rounded-lg shadow-sm hover:shadow transition-all"
-            title="Importar nota como subtarefa"
-          >
-            <FileDown size={16} />
-          </button>
-          <button
-            type="button"
-            onClick={() => onRemove(task.id)}
-            className="p-1.5 text-stone-400 hover:text-red-500 hover:bg-white rounded-lg shadow-sm hover:shadow transition-all"
-          >
-            <Trash2 size={16} />
-          </button>
+          
+          <div className="flex-1 min-w-0">
+             <span className={`text-sm font-medium block transition-all ${task.completed ? 'text-stone-400 line-through' : 'text-gray-700'}`}>
+              {task.text}
+            </span>
+            <div className="flex items-center gap-2 mt-1">
+              {task.priority && (
+                <span className={`text-[9px] font-black uppercase px-2 py-0.5 rounded-md ${
+                  task.priority === 'alta' ? 'bg-red-50 text-red-500' : 
+                  task.priority === 'média' ? 'bg-amber-50 text-amber-500' : 'bg-stone-100 text-stone-500'
+                }`}>
+                  {task.priority}
+                </span>
+              )}
+              {task.time && (
+                <span className="text-[9px] font-bold text-stone-400 font-mono flex items-center gap-1">
+                  <Clock size={8} /> {task.time}
+                </span>
+              )}
+            </div>
+          </div>
+
+          <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-all shrink-0">
+            <button
+              type="button"
+              onClick={() => setIsEditingMeta(!isEditingMeta)}
+              className={`p-1.5 rounded-lg transition-all ${isEditingMeta ? 'bg-stone-200 text-stone-900' : 'text-stone-400 hover:text-stone-900 hover:bg-white shadow-sm'}`}
+              title="Prioridade e Horário"
+            >
+              <Clock size={16} />
+            </button>
+            <button
+              type="button"
+              onClick={() => setIsAddingSubtask(!isAddingSubtask)}
+              className={`transition-all p-1.5 rounded-lg ${isAddingSubtask ? 'bg-primary/10 text-primary' : 'text-stone-400 hover:text-primary hover:bg-white shadow-sm hover:shadow'}`}
+              title="Adicionar Subtarefa"
+            >
+              <CornerDownRight size={16} />
+            </button>
+            <button
+              type="button"
+              onClick={() => onImport(task.id)}
+              className="p-1.5 text-stone-400 hover:text-primary hover:bg-white rounded-lg shadow-sm hover:shadow transition-all"
+              title="Importar nota como subtarefa"
+            >
+              <FileDown size={16} />
+            </button>
+            <button
+              type="button"
+              onClick={() => onRemove(task.id)}
+              className="p-1.5 text-stone-400 hover:text-red-500 hover:bg-white rounded-lg shadow-sm hover:shadow transition-all"
+            >
+              <Trash2 size={16} />
+            </button>
+          </div>
         </div>
+
+        {isEditingMeta && onUpdateTask && (
+          <motion.div 
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            className="flex items-center gap-3 pt-3 border-t border-stone-100 overflow-hidden"
+          >
+            <div className="flex-1 flex items-center gap-2">
+              <span className="text-[10px] font-black text-stone-400 uppercase tracking-widest">Prioridade:</span>
+              <div className="flex gap-1">
+                {priorities.map(p => (
+                  <button
+                    key={p}
+                    type="button"
+                    onClick={() => onUpdateTask(task.id, { priority: p === task.priority ? undefined : p })}
+                    className={`px-2 py-1 rounded-md text-[9px] font-black uppercase transition-all ${
+                      task.priority === p ? 'bg-stone-900 text-white shadow-lg' : 'bg-stone-50 text-stone-400 hover:bg-stone-100'
+                    }`}
+                  >
+                    {p}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+               <span className="text-[10px] font-black text-stone-400 uppercase tracking-widest">Hora:</span>
+               <input 
+                type="text" 
+                placeholder="09:00"
+                className="w-16 bg-stone-50 border border-stone-100 rounded-lg px-2 py-1 text-[10px] font-bold text-stone-900 outline-none focus:border-primary"
+                value={task.time || ''}
+                onChange={(e) => onUpdateTask(task.id, { time: e.target.value })}
+               />
+            </div>
+          </motion.div>
+        )}
       </motion.div>
 
       <AnimatePresence>
@@ -132,6 +202,7 @@ function TaskItem({ task, onToggle, onRemove, onAddSubtask, onImport, depth = 0 
               onRemove={onRemove} 
               onAddSubtask={onAddSubtask}
               onImport={onImport}
+              onUpdateTask={onUpdateTask}
               depth={depth + 1}
             />
           ))}
@@ -313,6 +384,21 @@ export default function NoteModal({ isOpen, onClose, onSave, onDelete, initialDa
       });
     };
     setTasks(addTaskToParent(tasks));
+  };
+
+  const updateTask = (id: string, updates: Partial<NoteTask>) => {
+    const updateInList = (list: NoteTask[]): NoteTask[] => {
+      return list.map(t => {
+        if (t.id === id) {
+          return { ...t, ...updates };
+        }
+        if (t.subtasks) {
+          return { ...t, subtasks: updateInList(t.subtasks) };
+        }
+        return t;
+      });
+    };
+    setTasks(updateInList(tasks));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -598,6 +684,7 @@ export default function NoteModal({ isOpen, onClose, onSave, onDelete, initialDa
                         onRemove={removeTask} 
                         onAddSubtask={addSubtask}
                         onImport={handleStartImport}
+                        onUpdateTask={updateTask}
                       />
                     ))}
                   </AnimatePresence>

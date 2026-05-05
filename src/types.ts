@@ -20,6 +20,8 @@ export interface NoteTask {
   id: string;
   text: string;
   completed: boolean;
+  priority?: 'alta' | 'média' | 'baixa';
+  time?: string;
   subtasks?: NoteTask[];
 }
 
