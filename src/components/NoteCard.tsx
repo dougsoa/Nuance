@@ -1,5 +1,5 @@
 import { motion } from 'motion/react';
-import { Tag, Calendar, Edit2, Trash2, ListTodo, CheckSquare, LayoutGrid, Circle } from 'lucide-react';
+import { Tag, Calendar, Edit2, Trash2, ListTodo, CheckSquare, StickyNote, Circle } from 'lucide-react';
 import { Note } from '../types';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -14,6 +14,7 @@ interface NoteCardProps {
 
 export default function NoteCard({ note, onToggleComplete, onEdit, onDelete }: NoteCardProps) {
   const date = note.createdAt?.toDate ? note.createdAt.toDate() : new Date();
+  const scheduledDate = note.scheduledDate ? new Date(note.scheduledDate + 'T12:00:00') : null;
   
   const progress = note.isDailyTask && note.tasks && note.tasks.length > 0
     ? (note.tasks.filter(t => t.completed).length / note.tasks.length) * 100
@@ -37,7 +38,7 @@ export default function NoteCard({ note, onToggleComplete, onEdit, onDelete }: N
     >
       <div className="flex justify-between items-start mb-4">
         <div className="w-10 h-10 rounded-xl bg-stone-50 flex items-center justify-center text-primary/40 group-hover:bg-primary/10 group-hover:text-primary transition-all duration-300">
-          {note.isDailyTask ? <ListTodo size={20} /> : <LayoutGrid size={20} />}
+          {note.isDailyTask ? <ListTodo size={20} /> : <StickyNote size={20} />}
         </div>
 
         <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -117,7 +118,11 @@ export default function NoteCard({ note, onToggleComplete, onEdit, onDelete }: N
         </div>
 
         <div className="flex items-center gap-1 text-[10px] font-bold text-stone-400 uppercase tracking-widest">
-          {format(date, 'dd MMM', { locale: ptBR })}
+          {scheduledDate ? (
+            <span className="flex items-center gap-1 text-primary">
+               <Calendar size={10} /> {format(scheduledDate, 'dd MMM', { locale: ptBR })}
+            </span>
+          ) : format(date, 'dd MMM', { locale: ptBR })}
         </div>
       </div>
     </motion.div>

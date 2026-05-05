@@ -219,7 +219,7 @@ export default function ProcessModule({ userId }: ProcessModuleProps) {
           <section className="flex-1 p-8 pt-0 overflow-y-auto">
             <div className="mb-8">
               <h2 className="text-3xl font-black tracking-tighter text-stone-900 uppercase">
-                Processos Operacionais
+                Meus Processos
               </h2>
             </div>
 
@@ -273,6 +273,11 @@ export default function ProcessModule({ userId }: ProcessModuleProps) {
         title="Excluir Fluxo?"
         message="Esta ação irá remover permanentemente toda a documentação deste processo."
       />
+
+      <footer className="px-8 py-4 bg-white/50 backdrop-blur-sm border-t border-stone-100 flex justify-between items-center text-[10px] font-bold text-stone-400 uppercase tracking-widest shrink-0">
+        <p>Nuance v1.2</p>
+        <p>Since 2026 - Quattrus</p>
+      </footer>
     </div>
   );
 }

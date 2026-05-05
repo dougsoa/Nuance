@@ -22,6 +22,7 @@ import { Note, OperationType, Process, NoteTask } from './types';
 import { handleFirestoreError } from './lib/utils';
 import NoteCard from './components/NoteCard';
 import NoteModal from './components/NoteModal';
+import ProcessModal from './components/ProcessModal';
 import ConfirmModal from './components/ConfirmModal';
 import Login from './components/Login';
 import Dashboard from './components/Dashboard';
@@ -43,6 +44,7 @@ export default function App() {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
   const [noteIdToDelete, setNoteIdToDelete] = useState<string | null>(null);
+  const [isGlobalProcessModalOpen, setIsGlobalProcessModalOpen] = useState(false);
 
   // Auth Listener
   useEffect(() => {
@@ -107,6 +109,20 @@ export default function App() {
 
     return unsubscribe;
   }, [user]);
+
+  const handleSaveProcess = async (data: Partial<Process>) => {
+    if (!user) return;
+    try {
+      await addDoc(collection(db, 'processes'), {
+        ...data,
+        userId: user.uid,
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+      });
+    } catch (error) {
+      handleFirestoreError(error, OperationType.CREATE, 'processes');
+    }
+  };
 
   const handleSaveNote = async (data: Partial<Note>) => {
     if (!user) return;
@@ -280,7 +296,7 @@ export default function App() {
                 }`}
               >
                 <span className="flex items-center gap-2.5 text-sm">
-                  <LayoutGrid size={16} className={activeView === 'notes' && !selectedCategory ? 'text-primary' : 'text-stone-400'} />
+                  <StickyNote size={16} className={activeView === 'notes' && !selectedCategory ? 'text-primary' : 'text-stone-400'} />
                   Notas
                 </span>
               </li>
@@ -295,7 +311,7 @@ export default function App() {
               >
                 <span className="flex items-center gap-2.5 text-sm">
                   <ListTodo size={16} className={activeView === 'notes' && selectedCategory === 'Daily Tasks' ? 'text-primary' : 'text-stone-400'} />
-                  Daily Tasks
+                  Tarefas
                 </span>
               </li>
               <li 
@@ -326,15 +342,15 @@ export default function App() {
                   onClick={openDailyTaskModal}
                   className="flex items-center gap-2.5 px-3 py-2.5 text-stone-600 hover:bg-stone-50 rounded-xl cursor-pointer text-sm font-medium transition-all"
                 >
-                  <ListTodo size={16} className="text-stone-400" />
+                  <Plus size={16} className="text-stone-400" />
                   Nova Tarefa
                 </li>
                 <li 
-                  onClick={() => setActiveView('processes')}
+                  onClick={() => setIsGlobalProcessModalOpen(true)}
                   className="flex items-center gap-2.5 px-3 py-2.5 text-stone-600 hover:bg-stone-50 rounded-xl cursor-pointer text-sm font-medium transition-all"
                 >
-                  <GitBranch size={16} className="text-stone-400" />
-                  Mapear Processo
+                  <Plus size={16} className="text-stone-400" />
+                  Novo Processo
                 </li>
              </ul>
           </div>
@@ -392,7 +408,7 @@ export default function App() {
               <StickyNote className="absolute left-4 top-1/2 -translate-y-1/2 text-stone-400 group-focus-within:text-primary transition-colors" size={18} />
               <input 
                 type="text"
-                placeholder="Pesquisar anotações..."
+                placeholder={selectedCategory === 'Daily Tasks' ? "Pesquisar tarefas..." : "Pesquisar anotações..."}
                 className="w-full bg-white border border-stone-200 rounded-2xl py-3 pl-12 pr-10 text-sm outline-none focus:border-primary focus:ring-4 focus:ring-primary/5 transition-all"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
@@ -409,27 +425,31 @@ export default function App() {
             </div>
 
             <div className="flex items-center gap-3">
-              <button 
-                onClick={openDailyTaskModal}
-                className="flex items-center gap-2.5 bg-white border border-stone-200 text-stone-700 px-5 py-3 rounded-2xl font-bold text-sm shadow-sm hover:bg-stone-50 active:scale-95 transition-all"
-              >
-                <CalendarDays size={18} className="text-primary" />
-                Daily Task
-              </button>
-              <button 
-                onClick={openCreateModal}
-                className="flex items-center gap-2 bg-primary text-white px-6 py-3 rounded-2xl font-bold text-sm shadow-xl shadow-primary/20 hover:opacity-90 active:scale-95 transition-all"
-              >
-                <Plus size={18} />
-                Nova Anotação
-              </button>
+              {selectedCategory === 'Daily Tasks' && (
+                <button 
+                  onClick={openDailyTaskModal}
+                  className="flex items-center gap-2 bg-primary text-white px-6 py-3 rounded-2xl font-bold text-sm shadow-xl shadow-primary/20 hover:opacity-90 active:scale-95 transition-all"
+                >
+                  <Plus size={18} />
+                  Nova Tarefa
+                </button>
+              )}
+              {selectedCategory !== 'Daily Tasks' && (
+                <button 
+                  onClick={openCreateModal}
+                  className="flex items-center gap-2 bg-primary text-white px-6 py-3 rounded-2xl font-bold text-sm shadow-xl shadow-primary/20 hover:opacity-90 active:scale-95 transition-all"
+                >
+                  <Plus size={18} />
+                  Nova Anotação
+                </button>
+              )}
             </div>
           </header>
 
           <section className="flex-1 p-8 pt-0 overflow-y-auto scrollbar-hide">
             <div className="mb-8">
               <h2 className="text-3xl font-black tracking-tighter text-stone-900 uppercase">
-                {selectedCategory || 'Minhas Notas'}
+                {selectedCategory === 'Daily Tasks' ? 'Minhas Tarefas' : (selectedCategory || 'Minhas Notas')}
               </h2>
             </div>
 
@@ -456,12 +476,14 @@ export default function App() {
           </section>
 
           <footer className="px-8 py-4 bg-white/50 backdrop-blur-sm border-t border-stone-100 flex justify-between items-center text-[10px] font-bold text-stone-400 uppercase tracking-widest">
-            <p>Nuance v1.0</p>
+            <p>Nuance v1.2</p>
             <p>Since 2026 - Quattrus</p>
           </footer>
         </main>
       ) : (
-        <ProcessModule userId={user.uid} />
+        <ProcessModule 
+          userId={user.uid} 
+        />
       )}
 
       <NoteModal 
@@ -471,6 +493,13 @@ export default function App() {
         onDelete={handleDeleteNote}
         initialData={editingNote}
         availableNotes={notes.filter(n => !n.isDailyTask && n.id !== editingNote?.id)}
+      />
+
+      <ProcessModal 
+        isOpen={isGlobalProcessModalOpen}
+        onClose={() => setIsGlobalProcessModalOpen(false)}
+        onSave={handleSaveProcess}
+        initialData={null}
       />
 
       <ConfirmModal 

@@ -35,6 +35,10 @@
           "type": "boolean",
           "description": "Whether this note is a daily planning task"
         },
+        "scheduledDate": {
+          "type": "string",
+          "description": "Date for which the task is scheduled (YYYY-MM-DD)"
+        },
         "userId": {
           "type": "string",
           "description": "UID of the owner"

@@ -35,6 +35,7 @@ service cloud.firestore {
              (data.get('tags', null) == null || (data.tags is list && data.tags.size() <= 60)) &&
              (data.get('completed', false) is bool) &&
              (data.get('isDailyTask', false) is bool) &&
+             (data.get('scheduledDate', null) == null || (data.scheduledDate is string && data.scheduledDate.size() <= 20)) &&
              (data.get('tasks', []) is list && data.get('tasks', []).size() <= 150) &&
              (data.get('completedAt', null) == null || data.completedAt is timestamp || data.completedAt == null);
     }
@@ -59,7 +60,7 @@ service cloud.firestore {
         incoming().updatedAt == request.time &&
         isValidNoteSchema(incoming()) &&
         incoming().diff(existing()).affectedKeys().hasOnly([
-          'title', 'content', 'category', 'tags', 'completed', 'updatedAt', 'tasks', 'isDailyTask', 'completedAt'
+          'title', 'content', 'category', 'tags', 'completed', 'updatedAt', 'tasks', 'isDailyTask', 'completedAt', 'scheduledDate'
         ])
       );
       

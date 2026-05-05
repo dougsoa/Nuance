@@ -44,7 +44,11 @@ export default function Dashboard({
   openProcesses,
   openNotes
 }: DashboardProps) {
-  const dailyTasksNote = notes.find(n => n.category === 'Daily Tasks' && isToday(n.createdAt?.toDate ? n.createdAt.toDate() : new Date()));
+  const todayStr = format(new Date(), 'yyyy-MM-dd');
+  const dailyTasksNote = notes.find(n => 
+    n.isDailyTask && 
+    (n.scheduledDate === todayStr || (!n.scheduledDate && isToday(n.createdAt?.toDate ? n.createdAt.toDate() : new Date())))
+  );
   const dailyTasks = dailyTasksNote?.tasks || [];
   
   // Recursive task counting including subtasks
@@ -66,6 +70,23 @@ export default function Dashboard({
   const { total: totalTasks, completed: completedTasks } = countTasks(dailyTasks);
   const taskProgress = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
 
+  // Recursive task counting for ALL pending tasks across all notes
+  const countAllPending = (allNotes: Note[]): number => {
+    let count = 0;
+    const traverse = (tasks: NoteTask[]) => {
+      tasks.forEach(t => {
+        if (!t.completed) count++;
+        if (t.subtasks) traverse(t.subtasks);
+      });
+    };
+    allNotes.forEach(n => {
+      if (n.tasks) traverse(n.tasks);
+    });
+    return count;
+  };
+
+  const totalPendingAll = countAllPending(notes);
+
   const nonDailyNotes = notes.filter(n => !n.isDailyTask);
   const recentNotes = nonDailyNotes.slice(0, 3);
 
@@ -74,7 +95,9 @@ export default function Dashboard({
     ...notes.map(n => ({
       id: n.id,
       type: n.isDailyTask ? 'task' : 'note',
-      text: n.isDailyTask ? `Daily Task para hoje criada` : `Nota "${n.title}" criada`,
+      text: n.isDailyTask 
+        ? `Tarefa para ${n.scheduledDate ? format(new Date(n.scheduledDate + 'T12:00:00'), "dd/MM") : 'hoje'} criada` 
+        : `Nota "${n.title}" criada`,
       date: n.createdAt?.toDate ? n.createdAt.toDate() : new Date(),
       icon: n.isDailyTask ? <ListTodo size={14} /> : <StickyNote size={14} />,
       color: n.isDailyTask ? "text-primary" : "text-emerald-500",
@@ -144,20 +167,6 @@ export default function Dashboard({
             <p className="text-stone-500 font-medium mt-1">Aqui está o que está acontecendo hoje.</p>
           </div>
           <div className="flex items-center gap-3">
-            <button 
-              onClick={onCreateTask}
-              className="px-5 py-3 bg-white border border-stone-200 text-stone-700 rounded-2xl font-bold text-sm shadow-sm hover:bg-stone-50 transition-all flex items-center gap-2"
-            >
-              <ListTodo size={18} className="text-primary" />
-              Daily Task
-            </button>
-            <button 
-              onClick={onCreateNote}
-              className="px-6 py-3 bg-primary text-white rounded-2xl font-bold text-sm shadow-xl shadow-primary/20 hover:opacity-90 transition-all flex items-center gap-2"
-            >
-              <Plus size={18} />
-              Nova Anotação
-            </button>
           </div>
         </header>
 
@@ -169,7 +178,6 @@ export default function Dashboard({
             subtitle="pendentes"
             icon={<ListTodo size={24} />}
             color="bg-primary/10 text-primary"
-            footer={`${completedTasks} concluídas de ${totalTasks}`}
             progress={taskProgress}
           />
           <KpiCard 
@@ -178,7 +186,6 @@ export default function Dashboard({
             subtitle="notas"
             icon={<StickyNote size={24} />}
             color="bg-emerald-50 text-emerald-600"
-            footer={recentNotes[0] ? `Última: ${recentNotes[0].title}` : 'Sem notas recentes'}
           />
           <KpiCard 
             title="Processos ativos"
@@ -186,15 +193,13 @@ export default function Dashboard({
             subtitle={processes.length === 1 ? "processo" : "processos"}
             icon={<GitBranch size={24} />}
             color="bg-indigo-50 text-indigo-600"
-            footer={processes[0] ? `Último: ${processes[0].title}` : 'Sem processos'}
           />
           <KpiCard 
-            title="Produtividade (semana)"
-            value={`${weeklyProductivity}%`}
-            subtitle="das tarefas concluídas"
-            icon={<TrendingUp size={24} />}
+            title="Tarefas pendentes"
+            value={totalPendingAll}
+            subtitle={totalPendingAll === 1 ? "tarefa / subtarefa" : "tarefas / subtarefas"}
+            icon={<ListTodo size={24} />}
             color="bg-amber-50 text-amber-600"
-            footer="Você está indo muito bem! 🚀"
           />
         </div>
 
@@ -205,7 +210,7 @@ export default function Dashboard({
           <div className="lg:col-span-12 xl:col-span-5 flex flex-col space-y-4">
              <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <LayoutGrid size={20} className="text-stone-400" />
+                  <ListTodo size={20} className="text-stone-400" />
                   <h3 className="text-xl font-bold text-stone-900 tracking-tight">Foco do dia</h3>
                 </div>
                 <button 
@@ -224,7 +229,7 @@ export default function Dashboard({
                     <button onClick={onCreateTask} className="mt-4 text-primary text-[10px] font-black uppercase tracking-widest">Adicionar agora</button>
                   </div>
                 ) : (
-                  <div className="space-y-6 flex-1">
+                  <div className="space-y-6 flex-1 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
                     {dailyTasks.map(task => renderTask(task))}
                   </div>
                 )}
@@ -268,7 +273,7 @@ export default function Dashboard({
                       >
                         <div className="flex items-center gap-4">
                           <div className="w-12 h-12 rounded-2xl bg-stone-50 flex items-center justify-center text-stone-400 group-hover:bg-primary/10 group-hover:text-primary transition-all">
-                            <LayoutGrid size={20} />
+                            <StickyNote size={20} />
                           </div>
                           <div>
                             <h4 className="font-bold text-stone-900">{note.title}</h4>
@@ -399,6 +404,11 @@ export default function Dashboard({
 
         </div>
       </div>
+      
+      <footer className="px-8 py-4 bg-[#F8FAFC]/50 backdrop-blur-sm border-t border-stone-200 flex justify-between items-center text-[10px] font-bold text-stone-400 uppercase tracking-widest mt-auto">
+        <p>Nuance v1.2</p>
+        <p>Since 2026 - Quattrus</p>
+      </footer>
     </main>
   );
 }

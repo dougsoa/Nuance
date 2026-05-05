@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
-import { X, Tag, Plus, Loader2, CheckCircle2, Circle, Trash2, ListTodo, Search, ArrowRight, CornerDownRight, ChevronRight, ChevronDown, FileDown, Clock } from 'lucide-react';
+import { X, Tag, Plus, Loader2, CheckCircle2, Circle, Trash2, ListTodo, Search, ArrowRight, CornerDownRight, ChevronRight, ChevronDown, FileDown, Clock, Calendar } from 'lucide-react';
 import { Note, NoteTask } from '../types';
 import { motion, AnimatePresence } from 'motion/react';
 import { v4 as uuidv4 } from 'uuid';
+import { format } from 'date-fns';
 
 interface NoteModalProps {
   isOpen: boolean;
@@ -222,6 +223,7 @@ export default function NoteModal({ isOpen, onClose, onSave, onDelete, initialDa
   const [tasks, setTasks] = useState<NoteTask[]>([]);
   const [newTaskText, setNewTaskText] = useState('');
   const [isDailyTask, setIsDailyTask] = useState(false);
+  const [scheduledDate, setScheduledDate] = useState(format(new Date(), 'yyyy-MM-dd'));
   const [isImporting, setIsImporting] = useState(false);
   const [importParentId, setImportParentId] = useState<string | null>(null);
   const [importSearch, setImportSearch] = useState('');
@@ -309,6 +311,7 @@ export default function NoteModal({ isOpen, onClose, onSave, onDelete, initialDa
       setTags(initialData.tags || []);
       setTasks(initialData.tasks || []);
       setIsDailyTask(!!initialData.isDailyTask);
+      setScheduledDate(initialData.scheduledDate || format(new Date(), 'yyyy-MM-dd'));
     } else {
       setTitle('');
       setContent('');
@@ -414,6 +417,7 @@ export default function NoteModal({ isOpen, onClose, onSave, onDelete, initialDa
         tags,
         tasks,
         isDailyTask,
+        scheduledDate: isDailyTask ? scheduledDate : undefined,
       });
       onClose();
     } catch (err) {
@@ -467,6 +471,18 @@ export default function NoteModal({ isOpen, onClose, onSave, onDelete, initialDa
                   required
                 />
               </div>
+            <div className="flex items-center gap-2">
+              {isDailyTask && (
+                <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-stone-50 border border-stone-100 mr-2">
+                  <Calendar size={14} className="text-stone-400" />
+                  <input 
+                    type="date" 
+                    className="bg-transparent text-xs font-bold text-stone-600 outline-none"
+                    value={scheduledDate}
+                    onChange={(e) => setScheduledDate(e.target.value)}
+                  />
+                </div>
+              )}
               <button
                 type="button"
                 onClick={() => setIsDailyTask(!isDailyTask)}
@@ -477,8 +493,9 @@ export default function NoteModal({ isOpen, onClose, onSave, onDelete, initialDa
                 }`}
               >
                 <ListTodo size={14} />
-                Daily Task
+                Tarefa
               </button>
+            </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

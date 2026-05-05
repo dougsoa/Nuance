@@ -34,6 +34,7 @@ export interface Note {
   completed: boolean;
   tasks?: NoteTask[];
   isDailyTask?: boolean;
+  scheduledDate?: string; // YYYY-MM-DD
   userId: string;
   createdAt: any; // Firestore Timestamp
   updatedAt: any; // Firestore Timestamp
