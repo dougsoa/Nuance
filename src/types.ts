@@ -17,6 +17,7 @@ export interface Note {
   userId: string;
   createdAt: any; // Firestore Timestamp
   updatedAt: any; // Firestore Timestamp
+  completedAt?: any; // Firestore Timestamp
 }
 
 export interface Category {
