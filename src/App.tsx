@@ -355,7 +355,7 @@ export default function App() {
 
         <footer className="px-8 py-4 bg-white/50 backdrop-blur-sm border-t border-stone-100 flex justify-between items-center text-[10px] font-bold text-stone-400 uppercase tracking-widest">
            <p>Nuance v1.0</p>
-           <p>© 2026 Design System</p>
+           <p>Since 2026 - Quattrus</p>
         </footer>
       </main>
 
