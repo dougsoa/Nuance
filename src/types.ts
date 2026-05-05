@@ -1,3 +1,21 @@
+export interface ProcessStep {
+  id: string;
+  title: string;
+  description: string;
+  order: number;
+}
+
+export interface Process {
+  id: string;
+  title: string;
+  description: string;
+  userId: string;
+  category?: string;
+  steps: ProcessStep[];
+  createdAt: any;
+  updatedAt: any;
+}
+
 export interface NoteTask {
   id: string;
   text: string;

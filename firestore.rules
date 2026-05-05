@@ -65,6 +65,38 @@ service cloud.firestore {
       allow delete: if isOwner(existing().userId);
     }
 
+    // Process validation
+    function isValidProcessSchema(data) {
+      return data.title is string && data.title.size() <= 200 &&
+             data.description is string && data.description.size() <= 2000 &&
+             (data.get('category', null) == null || data.category is string) &&
+             data.steps is list && data.steps.size() <= 50;
+    }
+
+    match /processes/{processId} {
+      allow get: if isOwner(existing().userId) && isValidId(processId);
+      allow list: if isSignedIn() && resource.data.userId == request.auth.uid;
+      
+      allow create: if isSignedIn() && 
+                      incoming().userId == request.auth.uid &&
+                      incoming().createdAt == request.time &&
+                      incoming().updatedAt == request.time &&
+                      isValidProcessSchema(incoming()) &&
+                      isValidId(processId);
+      
+      allow update: if isSignedIn() && isOwner(existing().userId) && isValidId(processId) && (
+        incoming().userId == existing().userId &&
+        incoming().createdAt == existing().createdAt &&
+        incoming().updatedAt == request.time &&
+        isValidProcessSchema(incoming()) &&
+        incoming().diff(existing()).affectedKeys().hasOnly([
+          'title', 'description', 'category', 'steps', 'updatedAt'
+        ])
+      );
+      
+      allow delete: if isOwner(existing().userId);
+    }
+
     // Categories
     function isValidCategory(data) {
       return data.keys().hasAll(['name', 'userId']) &&

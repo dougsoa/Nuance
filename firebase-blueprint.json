@@ -52,6 +52,32 @@
       },
       "required": ["title", "content", "userId", "createdAt", "updatedAt"]
     },
+    "Process": {
+      "title": "Process",
+      "description": "A structured workflow or SOP",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "userId": { "type": "string" },
+        "category": { "type": "string" },
+        "steps": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": { "type": "string" },
+              "title": { "type": "string" },
+              "description": { "type": "string" },
+              "order": { "type": "number" }
+            }
+          }
+        },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["title", "userId", "steps", "createdAt", "updatedAt"]
+    },
     "Category": {
       "title": "Category",
       "description": "Custom category for notes",
@@ -80,6 +106,10 @@
     "/categories/{categoryId}": {
       "schema": "Category",
       "description": "User specific categories"
+    },
+    "/processes/{processId}": {
+      "schema": "Process",
+      "description": "Organizational workflows and processes"
     }
   }
 }

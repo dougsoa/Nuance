@@ -27,12 +27,15 @@ import Login from './components/Login';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { AnimatePresence, motion } from 'motion/react';
-import { StickyNote, Filter, LayoutGrid, User as UserIcon, LogOut, ListTodo, CalendarDays, Plus, X } from 'lucide-react';
+import { StickyNote, Filter, LayoutGrid, User as UserIcon, LogOut, ListTodo, CalendarDays, Plus, X, GitBranch } from 'lucide-react';
+import ProcessModule from './components/ProcessModule';
 
 export default function App() {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [notes, setNotes] = useState<Note[]>([]);
+  const [activeView, setActiveView] = useState<'notes' | 'processes'>('notes');
+  const [processesCount, setProcessesCount] = useState(0);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingNote, setEditingNote] = useState<Note | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
@@ -73,6 +76,27 @@ export default function App() {
       setNotes(notesData);
     }, (error) => {
       handleFirestoreError(error, OperationType.LIST, 'notes');
+    });
+
+    return unsubscribe;
+  }, [user]);
+
+  // Processes Count Listener
+  useEffect(() => {
+    if (!user) {
+      setProcessesCount(0);
+      return;
+    }
+
+    const q = query(
+      collection(db, 'processes'), 
+      where('userId', '==', user.uid)
+    );
+
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      setProcessesCount(snapshot.size);
+    }, (error) => {
+      handleFirestoreError(error, OperationType.LIST, 'processes');
     });
 
     return unsubscribe;
@@ -217,13 +241,16 @@ export default function App() {
             <p className="text-[11px] uppercase tracking-widest text-stone-500 font-bold mb-4 px-1">Menu</p>
             <ul className="space-y-1.5">
               <li 
-                onClick={() => setSelectedCategory(null)}
+                onClick={() => {
+                  setSelectedCategory(null);
+                  setActiveView('notes');
+                }}
                 className={`flex items-center justify-between px-3 py-2.5 rounded-xl cursor-pointer transition-all ${
-                  !selectedCategory ? 'bg-white shadow-sm border border-stone-100 text-stone-900 font-bold' : 'text-stone-600 hover:bg-stone-50'
+                  activeView === 'notes' && !selectedCategory ? 'bg-white shadow-sm border border-stone-100 text-stone-900 font-bold' : 'text-stone-600 hover:bg-stone-50'
                 }`}
               >
                 <span className="flex items-center gap-2.5 text-sm">
-                  <LayoutGrid size={16} className={!selectedCategory ? 'text-primary' : 'text-stone-400'} />
+                  <LayoutGrid size={16} className={activeView === 'notes' && !selectedCategory ? 'text-primary' : 'text-stone-400'} />
                   Notas
                 </span>
                 <span className="text-[10px] bg-stone-100 px-1.5 py-0.5 rounded-md text-stone-400 font-bold">
@@ -231,17 +258,34 @@ export default function App() {
                 </span>
               </li>
               <li 
-                onClick={() => setSelectedCategory('Daily Tasks')}
+                onClick={() => {
+                  setSelectedCategory('Daily Tasks');
+                  setActiveView('notes');
+                }}
                 className={`flex items-center justify-between px-3 py-2.5 rounded-xl cursor-pointer transition-all ${
-                  selectedCategory === 'Daily Tasks' ? 'bg-white shadow-sm border border-stone-100 text-stone-900 font-bold' : 'text-stone-600 hover:bg-stone-50'
+                  activeView === 'notes' && selectedCategory === 'Daily Tasks' ? 'bg-white shadow-sm border border-stone-100 text-stone-900 font-bold' : 'text-stone-600 hover:bg-stone-50'
                 }`}
               >
                 <span className="flex items-center gap-2.5 text-sm">
-                  <ListTodo size={16} className={selectedCategory === 'Daily Tasks' ? 'text-primary' : 'text-stone-400'} />
+                  <ListTodo size={16} className={activeView === 'notes' && selectedCategory === 'Daily Tasks' ? 'text-primary' : 'text-stone-400'} />
                   Daily Tasks
                 </span>
                 <span className="text-[10px] bg-stone-100 px-1.5 py-0.5 rounded-md text-stone-400 font-bold">
                   {notes.filter(n => n.category === 'Daily Tasks' && !isAlreadyOldCompletion(n)).length}
+                </span>
+              </li>
+              <li 
+                onClick={() => setActiveView('processes')}
+                className={`flex items-center justify-between px-3 py-2.5 rounded-xl cursor-pointer transition-all ${
+                  activeView === 'processes' ? 'bg-white shadow-sm border border-stone-100 text-stone-900 font-bold' : 'text-stone-600 hover:bg-stone-50'
+                }`}
+              >
+                <span className="flex items-center gap-2.5 text-sm">
+                  <GitBranch size={16} className={activeView === 'processes' ? 'text-primary' : 'text-stone-400'} />
+                  Processos
+                </span>
+                <span className="text-[10px] bg-stone-100 px-1.5 py-0.5 rounded-md text-stone-400 font-bold">
+                  {processesCount}
                 </span>
               </li>
             </ul>
@@ -281,83 +325,87 @@ export default function App() {
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1 flex flex-col min-w-0">
-        <header className="p-8 flex items-center justify-between gap-8">
-           <div className="flex-1 max-w-xl relative group">
-            <StickyNote className="absolute left-4 top-1/2 -translate-y-1/2 text-stone-400 group-focus-within:text-primary transition-colors" size={18} />
-            <input 
-              type="text"
-              placeholder="Pesquisar anotações..."
-              className="w-full bg-white border border-stone-200 rounded-2xl py-3 pl-12 pr-10 text-sm outline-none focus:border-primary focus:ring-4 focus:ring-primary/5 transition-all"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-            {searchTerm && (
+      {activeView === 'notes' ? (
+        <main className="flex-1 flex flex-col min-w-0">
+          <header className="p-8 flex items-center justify-between gap-8">
+            <div className="flex-1 max-w-xl relative group">
+              <StickyNote className="absolute left-4 top-1/2 -translate-y-1/2 text-stone-400 group-focus-within:text-primary transition-colors" size={18} />
+              <input 
+                type="text"
+                placeholder="Pesquisar anotações..."
+                className="w-full bg-white border border-stone-200 rounded-2xl py-3 pl-12 pr-10 text-sm outline-none focus:border-primary focus:ring-4 focus:ring-primary/5 transition-all"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+              {searchTerm && (
+                <button 
+                  onClick={() => setSearchTerm('')}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-600 transition-colors"
+                  aria-label="Limpar pesquisa"
+                >
+                  <X size={16} />
+                </button>
+              )}
+            </div>
+
+            <div className="flex items-center gap-3">
               <button 
-                onClick={() => setSearchTerm('')}
-                className="absolute right-4 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-600 transition-colors"
-                aria-label="Limpar pesquisa"
+                onClick={openDailyTaskModal}
+                className="flex items-center gap-2.5 bg-white border border-stone-200 text-stone-700 px-5 py-3 rounded-2xl font-bold text-sm shadow-sm hover:bg-stone-50 active:scale-95 transition-all"
               >
-                <X size={16} />
+                <CalendarDays size={18} className="text-primary" />
+                Daily Task
               </button>
+              <button 
+                onClick={openCreateModal}
+                className="flex items-center gap-2 bg-primary text-white px-6 py-3 rounded-2xl font-bold text-sm shadow-xl shadow-primary/20 hover:opacity-90 active:scale-95 transition-all"
+              >
+                <Plus size={18} />
+                Nova Anotação
+              </button>
+            </div>
+          </header>
+
+          <section className="flex-1 p-8 pt-0 overflow-y-auto scrollbar-hide">
+            <div className="mb-8">
+              <h2 className="text-3xl font-black tracking-tighter text-stone-900 uppercase">
+                {selectedCategory || 'Minhas Notas'}
+              </h2>
+              <p className="text-sm font-medium text-stone-400 mt-1 uppercase tracking-widest">
+                Exibindo {filteredNotes.length} de {selectedCategory === 'Daily Tasks' ? notes.filter(n => n.isDailyTask && !isAlreadyOldCompletion(n)).length : notes.filter(n => !n.isDailyTask && !isAlreadyOldCompletion(n)).length} {selectedCategory === 'Daily Tasks' ? 'Dailys' : 'Anotações'}
+              </p>
+            </div>
+
+            {filteredNotes.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-20 text-stone-300">
+                <StickyNote size={60} strokeWidth={1} />
+                <p className="mt-4 font-bold uppercase tracking-widest text-xs">Nada encontrado</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 xl:grid-cols-2 2xl:grid-cols-3 gap-6 pb-20">
+                <AnimatePresence mode="popLayout">
+                  {filteredNotes.map(note => (
+                    <NoteCard 
+                      key={note.id}
+                      note={note}
+                      onToggleComplete={handleToggleComplete}
+                      onEdit={openEditModal}
+                      onDelete={handleDeleteNote}
+                    />
+                  ))}
+                </AnimatePresence>
+              </div>
             )}
-          </div>
+          </section>
 
-          <div className="flex items-center gap-3">
-            <button 
-              onClick={openDailyTaskModal}
-              className="flex items-center gap-2.5 bg-white border border-stone-200 text-stone-700 px-5 py-3 rounded-2xl font-bold text-sm shadow-sm hover:bg-stone-50 active:scale-95 transition-all"
-            >
-              <CalendarDays size={18} className="text-primary" />
-              Daily Task
-            </button>
-            <button 
-              onClick={openCreateModal}
-              className="flex items-center gap-2 bg-primary text-white px-6 py-3 rounded-2xl font-bold text-sm shadow-xl shadow-primary/20 hover:opacity-90 active:scale-95 transition-all"
-            >
-              <Plus size={18} />
-              Nova Anotação
-            </button>
-          </div>
-        </header>
-
-        <section className="flex-1 p-8 pt-0 overflow-y-auto scrollbar-hide">
-          <div className="mb-8">
-            <h2 className="text-3xl font-black tracking-tighter text-stone-900 uppercase">
-              {selectedCategory || 'Minhas Notas'}
-            </h2>
-            <p className="text-sm font-medium text-stone-400 mt-1 uppercase tracking-widest">
-              Exibindo {filteredNotes.length} de {selectedCategory === 'Daily Tasks' ? notes.filter(n => n.isDailyTask && !isAlreadyOldCompletion(n)).length : notes.filter(n => !n.isDailyTask && !isAlreadyOldCompletion(n)).length} {selectedCategory === 'Daily Tasks' ? 'Dailys' : 'Anotações'}
-            </p>
-          </div>
-
-          {filteredNotes.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-20 text-stone-300">
-               <StickyNote size={60} strokeWidth={1} />
-               <p className="mt-4 font-bold uppercase tracking-widest text-xs">Nada encontrado</p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 xl:grid-cols-2 2xl:grid-cols-3 gap-6 pb-20">
-              <AnimatePresence mode="popLayout">
-                {filteredNotes.map(note => (
-                  <NoteCard 
-                    key={note.id}
-                    note={note}
-                    onToggleComplete={handleToggleComplete}
-                    onEdit={openEditModal}
-                    onDelete={handleDeleteNote}
-                  />
-                ))}
-              </AnimatePresence>
-            </div>
-          )}
-        </section>
-
-        <footer className="px-8 py-4 bg-white/50 backdrop-blur-sm border-t border-stone-100 flex justify-between items-center text-[10px] font-bold text-stone-400 uppercase tracking-widest">
-           <p>Nuance v1.0</p>
-           <p>Since 2026 - Quattrus</p>
-        </footer>
-      </main>
+          <footer className="px-8 py-4 bg-white/50 backdrop-blur-sm border-t border-stone-100 flex justify-between items-center text-[10px] font-bold text-stone-400 uppercase tracking-widest">
+            <p>Nuance v1.0</p>
+            <p>Since 2026 - Quattrus</p>
+          </footer>
+        </main>
+      ) : (
+        <ProcessModule userId={user.uid} />
+      )}
 
       <NoteModal 
         isOpen={isModalOpen}
