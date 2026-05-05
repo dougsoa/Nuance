@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { LogIn, UserPlus, Mail, Lock, User as UserIcon, Sparkles, Loader2, KeyRound, ArrowLeft, CheckCircle2 } from 'lucide-react';
 import { loginWithEmail, registerWithEmail, resetPassword } from '../lib/firebase';
+import { sendWelcomeEmail } from '../services/emailService';
 
 export default function Login() {
   const [isLogin, setIsLogin] = useState(true);
@@ -52,6 +53,8 @@ export default function Login() {
         await loginWithEmail(email, password);
       } else {
         await registerWithEmail(email, password, name);
+        // Trigger welcome email in the background
+        sendWelcomeEmail(email, name).catch(console.error);
       }
     } catch (err: any) {
       console.error(err);
