@@ -181,22 +181,7 @@ export default function App() {
     setIsModalOpen(true);
   };
 
-  const isAlreadyOldCompletion = (note: Note) => {
-    if (note.completed && note.completedAt) {
-      try {
-        const completedDate = note.completedAt.toDate ? note.completedAt.toDate() : new Date(note.completedAt);
-        const diffInDays = (new Date().getTime() - completedDate.getTime()) / (1000 * 3600 * 24);
-        return diffInDays > 2;
-      } catch (e) {
-        return false;
-      }
-    }
-    return false;
-  };
-
   const filteredNotes = notes.filter(note => {
-    if (isAlreadyOldCompletion(note)) return false;
-
     const matchesSearch = note.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
                           note.content.toLowerCase().includes(searchTerm.toLowerCase());
     
@@ -254,7 +239,7 @@ export default function App() {
                   Notas
                 </span>
                 <span className="text-[10px] bg-stone-100 px-1.5 py-0.5 rounded-md text-stone-400 font-bold">
-                  {notes.filter(n => !n.isDailyTask && !isAlreadyOldCompletion(n)).length}
+                  {notes.filter(n => !n.isDailyTask).length}
                 </span>
               </li>
               <li 
@@ -271,7 +256,7 @@ export default function App() {
                   Daily Tasks
                 </span>
                 <span className="text-[10px] bg-stone-100 px-1.5 py-0.5 rounded-md text-stone-400 font-bold">
-                  {notes.filter(n => n.category === 'Daily Tasks' && !isAlreadyOldCompletion(n)).length}
+                  {notes.filter(n => n.category === 'Daily Tasks').length}
                 </span>
               </li>
               <li 
@@ -371,9 +356,6 @@ export default function App() {
               <h2 className="text-3xl font-black tracking-tighter text-stone-900 uppercase">
                 {selectedCategory || 'Minhas Notas'}
               </h2>
-              <p className="text-sm font-medium text-stone-400 mt-1 uppercase tracking-widest">
-                Exibindo {filteredNotes.length} de {selectedCategory === 'Daily Tasks' ? notes.filter(n => n.isDailyTask && !isAlreadyOldCompletion(n)).length : notes.filter(n => !n.isDailyTask && !isAlreadyOldCompletion(n)).length} {selectedCategory === 'Daily Tasks' ? 'Dailys' : 'Anotações'}
-              </p>
             </div>
 
             {filteredNotes.length === 0 ? (

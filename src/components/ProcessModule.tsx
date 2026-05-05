@@ -221,9 +221,6 @@ export default function ProcessModule({ userId }: ProcessModuleProps) {
               <h2 className="text-3xl font-black tracking-tighter text-stone-900 uppercase">
                 Processos Operacionais
               </h2>
-              <p className="text-sm font-medium text-stone-400 mt-1 uppercase tracking-widest">
-                Fluxos de trabalho documentados para sua área
-              </p>
             </div>
 
             {filteredProcesses.length === 0 ? (

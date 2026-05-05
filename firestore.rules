@@ -29,13 +29,14 @@ service cloud.firestore {
 
     // Note validation
     function isValidNoteSchema(data) {
-      return data.title is string && data.title.size() <= 200 &&
-             data.content is string && data.content.size() <= 10000 &&
+      return (data.get('title', 'valid') is string && data.get('title', '').size() <= 200) &&
+             (data.get('content', 'valid') is string && data.get('content', '').size() <= 10000) &&
              (data.get('category', null) == null || data.category is string) &&
-             (data.get('tags', null) == null || (data.tags is list && data.tags.size() <= 50)) &&
+             (data.get('tags', null) == null || (data.tags is list && data.tags.size() <= 60)) &&
              (data.get('completed', false) is bool) &&
              (data.get('isDailyTask', false) is bool) &&
-             (data.get('tasks', []) is list && data.get('tasks', []).size() <= 100);
+             (data.get('tasks', []) is list && data.get('tasks', []).size() <= 150) &&
+             (data.get('completedAt', null) == null || data.completedAt is timestamp || data.completedAt == null);
     }
 
     function isValidNoteCreate(data) {
@@ -58,7 +59,7 @@ service cloud.firestore {
         incoming().updatedAt == request.time &&
         isValidNoteSchema(incoming()) &&
         incoming().diff(existing()).affectedKeys().hasOnly([
-          'title', 'content', 'category', 'tags', 'completed', 'updatedAt', 'tasks', 'isDailyTask'
+          'title', 'content', 'category', 'tags', 'completed', 'updatedAt', 'tasks', 'isDailyTask', 'completedAt'
         ])
       );
       

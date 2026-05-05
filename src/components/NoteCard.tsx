@@ -1,5 +1,5 @@
 import { motion } from 'motion/react';
-import { CheckCircle2, Circle, Tag, Calendar, MoreVertical, Edit2, Trash2, ListTodo, CheckSquare } from 'lucide-react';
+import { Tag, Calendar, Edit2, Trash2, ListTodo, CheckSquare, LayoutGrid, Circle } from 'lucide-react';
 import { Note } from '../types';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -14,6 +14,12 @@ interface NoteCardProps {
 
 export default function NoteCard({ note, onToggleComplete, onEdit, onDelete }: NoteCardProps) {
   const date = note.createdAt?.toDate ? note.createdAt.toDate() : new Date();
+  
+  const progress = note.isDailyTask && note.tasks && note.tasks.length > 0
+    ? (note.tasks.filter(t => t.completed).length / note.tasks.length) * 100
+    : 0;
+
+  const isActuallyCompleted = note.completed || (note.isDailyTask && progress === 100 && note.tasks.length > 0);
 
   return (
     <motion.div 
@@ -24,25 +30,15 @@ export default function NoteCard({ note, onToggleComplete, onEdit, onDelete }: N
       whileHover={{ y: -4 }}
       onClick={() => onEdit(note)}
       className={`group relative bg-white border rounded-3xl p-6 shadow-sm hover:shadow-md transition-all cursor-pointer ${
-        note.completed 
+        isActuallyCompleted 
           ? 'opacity-60 border-stone-200 border-dashed bg-stone-50/50' 
           : 'border-stone-200 hover:border-stone-300'
       }`}
     >
       <div className="flex justify-between items-start mb-4">
-        <button 
-          onClick={(e) => {
-            e.stopPropagation();
-            onToggleComplete(note.id, note.completed);
-          }}
-          className={`w-6 h-6 rounded-full border-2 transition-all flex items-center justify-center ${
-            note.completed 
-              ? 'border-green-500 text-green-500' 
-              : 'border-stone-300 text-transparent hover:border-primary group-hover:text-primary/20'
-          }`}
-        >
-          {note.completed ? <CheckCircle2 size={14} /> : <Circle size={14} />}
-        </button>
+        <div className="w-10 h-10 rounded-xl bg-stone-50 flex items-center justify-center text-primary/40 group-hover:bg-primary/10 group-hover:text-primary transition-all duration-300">
+          {note.isDailyTask ? <ListTodo size={20} /> : <LayoutGrid size={20} />}
+        </div>
 
         <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
           <button 
@@ -67,24 +63,12 @@ export default function NoteCard({ note, onToggleComplete, onEdit, onDelete }: N
       </div>
 
       <div className="space-y-2">
-        <div className="mb-2 flex items-center gap-2">
-           {note.category && (
-            <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${
-              note.isDailyTask 
-                ? 'bg-primary/10 text-primary' 
-                : 'bg-stone-100 text-stone-500'
-            }`}>
-              {note.isDailyTask && <ListTodo size={11} />}
-              {note.category}
-            </span>
-          )}
-        </div>
-        <h3 className={`text-lg font-bold tracking-tight ${note.completed ? 'line-through text-stone-400' : 'text-stone-900'}`}>
+        <h3 className={`text-lg font-bold tracking-tight ${isActuallyCompleted ? 'line-through text-stone-400' : 'text-stone-900'}`}>
           {note.title}
         </h3>
 
         {note.isDailyTask && note.tasks && note.tasks.length > 0 && (
-          <div className="space-y-3">
+          <div className="space-y-4 pt-2">
             <div className="flex items-center justify-between text-[10px] font-bold text-stone-400 uppercase tracking-widest">
               <span>Progresso</span>
               <span>
@@ -98,22 +82,22 @@ export default function NoteCard({ note, onToggleComplete, onEdit, onDelete }: N
                 className="h-full bg-primary"
               />
             </div>
-            <div className="py-2 space-y-1.5">
+            <div className="space-y-1.5">
               {note.tasks.slice(0, 3).map(task => (
-              <div key={task.id} className="flex items-center gap-2 text-xs text-stone-500">
-                <div className={`shrink-0 ${task.completed ? 'text-primary' : 'text-stone-300'}`}>
-                  {task.completed ? <CheckSquare size={12} /> : <Circle size={12} />}
+                <div key={task.id} className="flex items-center gap-2 text-xs text-stone-600">
+                  <div className={`shrink-0 ${task.completed ? 'text-primary' : 'text-stone-300'}`}>
+                    {task.completed ? <CheckSquare size={12} /> : <Circle size={12} />}
+                  </div>
+                  <span className={`truncate ${task.completed ? 'line-through opacity-50' : ''}`}>
+                    {task.text}
+                  </span>
                 </div>
-                <span className={`truncate ${task.completed ? 'line-through opacity-50' : ''}`}>
-                  {task.text}
-                </span>
-              </div>
-            ))}
-            {note.tasks.length > 3 && (
-              <p className="text-[10px] text-stone-400 font-bold uppercase pl-5">+ {note.tasks.length - 3} tarefas</p>
-            )}
+              ))}
+              {note.tasks.length > 3 && (
+                <p className="text-[10px] text-stone-400 font-bold uppercase pl-5">+ {note.tasks.length - 3} tarefas</p>
+              )}
+            </div>
           </div>
-        </div>
         )}
 
         {note.content && (
