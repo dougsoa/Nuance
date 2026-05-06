@@ -154,6 +154,9 @@ export default function Dashboard({
     </React.Fragment>
   );
 
+  const hour = new Date().getHours();
+  const greeting = hour >= 5 && hour < 12 ? "Bom dia" : hour >= 12 && hour < 18 ? "Boa tarde" : "Boa noite";
+
   return (
     <main className="flex-1 overflow-y-auto bg-[#F8FAFC] custom-scrollbar p-8 lg:p-12">
       <div className="max-w-7xl mx-auto space-y-10 pb-20">
@@ -162,7 +165,7 @@ export default function Dashboard({
         <header className="flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div>
             <h2 className="text-4xl font-black text-stone-900 tracking-tight">
-              Boa tarde, {user?.displayName?.split(' ')[0] || 'Douglas'}!
+              {greeting}, {user?.displayName?.split(' ')[0] || 'Douglas'}!
             </h2>
             <p className="text-stone-500 font-medium mt-1">Aqui está o que está acontecendo hoje.</p>
           </div>

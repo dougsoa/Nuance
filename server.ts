@@ -37,32 +37,167 @@ async function startServer() {
         to: [email],
         subject: 'Bem-vindo ao Nuance',
         html: `
-          <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; background-color: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 16px; overflow: hidden;">
-            <div style="background-color: #FFFFFF; padding: 40px; text-align: center; border-bottom: 1px solid #F1F5F9;">
-              <h1 style="color: #0F172A; margin: 0; font-size: 24px; font-weight: 800; letter-spacing: -0.025em; text-transform: uppercase;">NUANCE</h1>
-              <p style="color: #64748B; font-size: 14px; margin-top: 8px;">Organize sua mente, maximize sua eficiência.</p>
-            </div>
-            <div style="padding: 40px; background-color: #FFFFFF;">
-              <h2 style="color: #0F172A; font-size: 20px; font-weight: 700; margin-bottom: 20px;">Olá${name ? `, ${name}` : ''}!</h2>
-              <p style="color: #334155; line-height: 1.6; font-size: 16px;">
-                É um prazer ter você no <strong>Nuance</strong>. Nosso objetivo é fornecer a você um espaço limpo e intuitivo para capturar suas anotações, gerenciar suas tarefas e documentar seus processos operacionais.
-              </p>
-              <div style="margin-top: 30px; padding: 20px; background-color: #F8FAFC; border-radius: 12px; border-left: 4px solid #0EA5E9;">
-                <p style="color: #1E293B; margin: 0; font-weight: 600;">O que você pode fazer agora:</p>
-                <ul style="color: #475569; padding-left: 20px; margin-top: 12px; line-height: 1.8;">
-                  <li>Criar anotações rápidas para seus insights</li>
-                  <li>Gerenciar suas tarefas diárias no Foco do Dia</li>
-                  <li>Mapear e documentar processos da sua empresa</li>
-                </ul>
-              </div>
-              <div style="text-align: center; margin-top: 40px;">
-                <a href="${process.env.APP_URL || 'https://nuance-git-main-dougsoas-projects.vercel.app/'}" style="background-color: #0F172A; color: #FFFFFF; padding: 12px 32px; border-radius: 12px; text-decoration: none; font-weight: 600; display: inline-block;">Começar a Usar</a>
-              </div>
-            </div>
-            <div style="padding: 24px; background-color: #F8FAFC; text-align: center; color: #94A3B8; font-size: 12px;">
-              <p style="margin: 0;">&copy; 2026 Quattrus - Nuance v1.2</p>
-            </div>
-          </div>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html dir="ltr" lang="en">
+  <head>
+    <meta content="width=device-width" name="viewport" />
+    <meta content="text/html; charset=UTF-8" http-equiv="Content-Type" />
+    <meta name="x-apple-disable-message-reformatting" />
+    <meta content="IE=edge" http-equiv="X-UA-Compatible" />
+    <meta name="x-apple-disable-message-reformatting" />
+    <meta
+      content="telephone=no,address=no,email=no,date=no,url=no"
+      name="format-detection" />
+  </head>
+  <body style="background-color:#ffffff">
+    <table
+      border="0"
+      width="100%"
+      cellpadding="0"
+      cellspacing="0"
+      role="presentation"
+      align="center">
+      <tbody>
+        <tr>
+          <td style="background-color:#ffffff">
+            <table
+              align="left"
+              width="100%"
+              border="0"
+              cellpadding="0"
+              cellspacing="0"
+              role="presentation"
+              style="max-width:600px;align:left;width:100%;color:#000000;background-color:#ffffff;padding-top:0px;padding-right:0px;padding-bottom:0px;padding-left:0px;border-radius:0px;border-color:#000000">
+              <tbody>
+                <tr style="width:100%">
+                  <td>
+                    <table
+                      align="center"
+                      width="100%"
+                      border="0"
+                      cellpadding="0"
+                      cellspacing="0"
+                      role="presentation"
+                      style="margin-top:40px;margin-right:auto;margin-bottom:40px;margin-left:auto;padding-top:0;padding-right:0;padding-bottom:0;padding-left:0;max-width:600px;background-color:#ffffff;border-radius:12px;border-style:solid;border-width:1px;border-color:#e1e8ed;border-collapse:separate;overflow:hidden;box-shadow:0 4px 12px rgba(0,0,0,0.05)">
+                      <tbody>
+                        <tr style="margin:0;padding:0">
+                          <td
+                            align="center"
+                            data-id="__react-email-column"
+                            style="margin:0;padding:40px 20px 20px">
+                            <div
+                              style="margin:0;padding:0;background-color:#00a09d;color:#ffffff;width:48px;height:48px;line-height:48px;font-size:24px;font-weight:bold;border-radius:12px;margin-bottom:10px;display:inline-block;text-align:center">
+                              <p style="margin:0;padding:0">N</p>
+                            </div>
+                            <h1
+                              style="margin:0;padding:0;font-size:28px;font-weight:800;color:#0f172a;letter-spacing:-0.5px;text-transform:uppercase">
+                              NUANCE
+                            </h1>
+                            <p
+                              style="margin:5px 0 0;padding:0;font-size:14px;color:#64748b">
+                              Organize sua mente, maximize sua eficiência.
+                            </p>
+                          </td>
+                        </tr>
+                        <tr style="margin:0;padding:0">
+                          <td
+                            data-id="__react-email-column"
+                            style="margin:0;padding:20px 40px">
+                            <p
+                              style="margin:0;padding:0;font-size:20px;font-weight:bold;color:#0f172a;margin-bottom:15px">
+                              Olá${name ? `, ${name}` : ''}!
+                            </p>
+                            <p
+                              style="margin:0;padding:0;font-size:16px;line-height:1.6;color:#475569;margin-bottom:30px">
+                              É um prazer ter você no <strong>Nuance</strong>.
+                              Nosso objetivo é fornecer a você um espaço limpo e
+                              intuitivo para capturar suas anotações, gerenciar
+                              suas tarefas e documentar seus processos
+                              operacionais.
+                            </p>
+                            <table
+                              width="100%"
+                              border="0"
+                              cellpadding="0"
+                              cellspacing="0"
+                              role="presentation"
+                              style="margin-top:0;margin-right:0;margin-bottom:0;margin-left:0;padding-top:0;padding-right:0;padding-bottom:0;padding-left:0;background-color:#f8fafc;border-left:4px solid #00a09d;border-radius:0 8px 8px 0">
+                              <tbody>
+                                <tr style="margin:0;padding:0">
+                                  <td
+                                    data-id="__react-email-column"
+                                    style="margin:0;padding:20px">
+                                    <p
+                                      style="margin:0 0 12px 0;padding:0;font-weight:bold;font-size:16px;color:#0f172a">
+                                      O que você pode fazer agora:
+                                    </p>
+                                    <ul
+                                      style="margin:0;padding:0;padding-left:1.1em;padding-bottom:1em;list-style:none">
+                                      <li
+                                        style="margin:0;padding:0;margin-left:1em;padding-bottom:0.3em;padding-top:0.3em;margin-bottom:8px;color:#475569;font-size:15px">
+                                        <p style="margin:0;padding:0">
+                                          Criar anotações rápidas para seus
+                                          insights
+                                        </p>
+                                      </li>
+                                      <li
+                                        style="margin:0;padding:0;margin-left:1em;padding-bottom:0.3em;padding-top:0.3em;margin-bottom:8px;color:#475569;font-size:15px">
+                                        <p style="margin:0;padding:0">
+                                          Gerenciar suas tarefas diárias no Foco
+                                          do Dia
+                                        </p>
+                                      </li>
+                                      <li
+                                        style="margin:0;padding:0;margin-left:1em;padding-bottom:0.3em;padding-top:0.3em;margin-bottom:0;color:#475569;font-size:15px">
+                                        <p style="margin:0;padding:0">
+                                          Mapear e documentar os seus processos
+                                        </p>
+                                      </li>
+                                    </ul>
+                                  </td>
+                                </tr>
+                              </tbody>
+                            </table>
+                          </td>
+                        </tr>
+                        <tr style="margin:0;padding:0">
+                          <td
+                            align="center"
+                            data-id="__react-email-column"
+                            style="margin:0;padding:20px 40px 40px">
+                            <p style="margin:0;padding:0">
+                              <a
+                                href="${process.env.APP_URL || 'https://nuance-git-main-dougsoas-projects.vercel.app/'}"
+                                rel="noopener noreferrer nofollow"
+                                style="color:#ffffff;text-decoration-line:none;text-decoration:none;background-color:#0f172a;padding:14px 32px;font-weight:bold;border-radius:8px;display:inline-block"
+                                target="_blank"
+                                >Começar a Usar</a
+                              >
+                            </p>
+                          </td>
+                        </tr>
+                        <tr style="margin:0;padding:0">
+                          <td
+                            align="center"
+                            data-id="__react-email-column"
+                            style="margin:0;padding:20px;background-color:#f8fafc;font-size:12px;color:#94a3b8;border-top:1px solid #e1e8ed">
+                            <p style="margin:0;padding:0">
+                              © 2026 Quattrus - Nuance v1.2
+                            </p>
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </body>
+</html>
         `
       });
 
