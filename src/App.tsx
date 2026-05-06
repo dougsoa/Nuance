@@ -401,15 +401,33 @@ export default function App() {
                     <p className="text-[10px] font-black text-stone-400 uppercase tracking-[0.2em]">Explore seus pensamentos</p>
                   </div>
                   
-                  <div className="flex-1 max-w-xl relative group">
-                    <StickyNote className="absolute left-5 top-1/2 -translate-y-1/2 text-stone-400" size={18} />
-                    <input 
-                      type="text"
-                      placeholder="Busca universal..."
-                      className="w-full bg-white border border-stone-200 rounded-[24px] py-4 pl-14 pr-6 text-sm font-bold shadow-sm focus:ring-4 focus:ring-primary/5 transition-all outline-none"
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                    />
+                  <div className="flex-1 max-w-xl flex items-center gap-4">
+                    <div className="flex-1 relative group">
+                      <StickyNote className="absolute left-5 top-1/2 -translate-y-1/2 text-stone-400 font-bold" size={18} />
+                      <input 
+                        type="text"
+                        placeholder="Busca universal..."
+                        className="w-full bg-white border border-stone-200 rounded-[24px] py-4 pl-14 pr-12 text-sm font-bold shadow-sm focus:ring-4 focus:ring-primary/5 transition-all outline-none"
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                      />
+                      {searchTerm && (
+                        <button 
+                          onClick={() => setSearchTerm('')}
+                          className="absolute right-5 top-1/2 -translate-y-1/2 text-stone-300 hover:text-stone-600 transition-colors"
+                        >
+                          <X size={16} strokeWidth={3} />
+                        </button>
+                      )}
+                    </div>
+                    
+                    <button 
+                      onClick={selectedCategory === 'Daily Tasks' ? openDailyTaskModal : openCreateModal}
+                      className="hidden sm:flex items-center gap-2 bg-primary text-white p-4 rounded-[24px] font-black text-[10px] uppercase tracking-[0.2em] shadow-lg shadow-primary/20 hover:opacity-90 active:scale-95 transition-all shrink-0 px-6 whitespace-nowrap"
+                    >
+                      <Plus size={18} strokeWidth={3} />
+                      {selectedCategory === 'Daily Tasks' ? 'Nova Tarefa' : 'Nova Nota'}
+                    </button>
                   </div>
                </header>
 

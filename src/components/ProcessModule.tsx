@@ -152,36 +152,43 @@ export default function ProcessModule({ userId, initialSelectedProcessId }: Proc
         </div>
       ) : (
         <>
-          <header className="p-6 lg:p-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4 lg:gap-8 shrink-0">
-            <div className="flex-1 max-w-xl relative group w-full">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-stone-400 group-focus-within:text-primary transition-colors" size={18} />
-              <input 
-                type="text"
-                placeholder="Pesquisar processos da área..."
-                className="w-full bg-white border border-stone-200 rounded-2xl py-3 pl-12 pr-10 text-sm outline-none focus:border-primary focus:ring-4 focus:ring-primary/5 transition-all shadow-sm"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
-              {searchTerm && (
-                <button 
-                  onClick={() => setSearchTerm('')}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-600 transition-colors"
-                >
-                  <X size={16} />
-                </button>
-              )}
+          <header className="p-6 lg:p-10 pb-0 flex flex-col lg:flex-row lg:items-center justify-between gap-6 shrink-0">
+            <div>
+              <h2 className="text-3xl font-black text-stone-900 tracking-tighter uppercase mb-1">Fluxos</h2>
+              <p className="text-[10px] font-black text-stone-400 uppercase tracking-[0.2em]">Documente sua rotina</p>
             </div>
+            
+            <div className="flex-1 max-w-xl flex items-center gap-4 w-full">
+              <div className="flex-1 relative group">
+                <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-stone-400" size={18} />
+                <input 
+                  type="text"
+                  placeholder="Pesquisar fluxos..."
+                  className="w-full bg-white border border-stone-200 rounded-[24px] py-4 pl-14 pr-12 text-sm font-bold shadow-sm focus:ring-4 focus:ring-primary/5 transition-all outline-none"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+                {searchTerm && (
+                  <button 
+                    onClick={() => setSearchTerm('')}
+                    className="absolute right-5 top-1/2 -translate-y-1/2 text-stone-300 hover:text-stone-600 transition-colors"
+                  >
+                    <X size={16} strokeWidth={3} />
+                  </button>
+                )}
+              </div>
 
-            <button 
-              onClick={() => {
-                setEditingProcess(null);
-                setIsModalOpen(true);
-              }}
-              className="w-full sm:w-auto flex items-center justify-center gap-2 bg-primary text-white px-8 py-3 rounded-2xl font-bold text-sm shadow-xl shadow-primary/20 hover:opacity-90 active:scale-95 transition-all"
-            >
-              <Plus size={18} />
-              Mapear Processo
-            </button>
+              <button 
+                onClick={() => {
+                  setEditingProcess(null);
+                  setIsModalOpen(true);
+                }}
+                className="hidden sm:flex items-center gap-2 bg-primary text-white p-4 rounded-[24px] font-black text-[10px] uppercase tracking-[0.2em] shadow-lg shadow-primary/20 hover:opacity-90 active:scale-95 transition-all shrink-0 px-6 whitespace-nowrap"
+              >
+                <Plus size={18} strokeWidth={3} />
+                Mapear Processo
+              </button>
+            </div>
           </header>
 
           <section className="flex-1 p-6 lg:p-8 pt-0 overflow-y-auto custom-scrollbar">
