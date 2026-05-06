@@ -29,12 +29,15 @@ import Dashboard from './components/Dashboard';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { AnimatePresence, motion } from 'motion/react';
-import { StickyNote, Filter, LayoutGrid, User as UserIcon, LogOut, ListTodo, CalendarDays, Plus, X, GitBranch, LayoutDashboard, Menu } from 'lucide-react';
+import { StickyNote, Filter, LayoutGrid, User as UserIcon, LogOut, ListTodo, CalendarDays, Plus, X, GitBranch, LayoutDashboard, Menu, CheckCircle2 } from 'lucide-react';
+import { Toaster, toast } from 'sonner';
+import { DashboardSkeleton } from './components/DashboardSkeleton';
 import ProcessModule from './components/ProcessModule';
 
 export default function App() {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isDataLoading, setIsDataLoading] = useState(true);
   const [notes, setNotes] = useState<Note[]>([]);
   const [processes, setProcesses] = useState<Process[]>([]);
   const [activeView, setActiveView] = useState<'dashboard' | 'notes' | 'processes'>('dashboard');
@@ -78,6 +81,7 @@ export default function App() {
         ...doc.data()
       })) as Note[];
       setNotes(notesData);
+      setIsDataLoading(false);
     }, (error) => {
       handleFirestoreError(error, OperationType.LIST, 'notes');
     });
@@ -120,7 +124,9 @@ export default function App() {
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
       });
+      toast.success('Processo criado com sucesso!');
     } catch (error) {
+      toast.error('Erro ao salvar processo.');
       handleFirestoreError(error, OperationType.CREATE, 'processes');
     }
   };
@@ -135,6 +141,7 @@ export default function App() {
           ...data,
           updatedAt: serverTimestamp(),
         });
+        toast.success('Anotação atualizada!');
       } else {
         await addDoc(collection(db, 'notes'), {
           ...data,
@@ -143,8 +150,10 @@ export default function App() {
           createdAt: serverTimestamp(),
           updatedAt: serverTimestamp(),
         });
+        toast.success('Anotação criada!');
       }
     } catch (error) {
+      toast.error('Erro ao salvar.');
       handleFirestoreError(error, editingNote ? OperationType.UPDATE : OperationType.CREATE, 'notes');
     }
   };
@@ -201,7 +210,9 @@ export default function App() {
     try {
       await deleteDoc(doc(db, 'notes', noteIdToDelete));
       setNoteIdToDelete(null);
+      toast.success('Excluído com sucesso');
     } catch (error) {
+      toast.error('Erro ao excluir');
       handleFirestoreError(error, OperationType.DELETE, `notes/${noteIdToDelete}`);
     }
   };
@@ -447,21 +458,25 @@ export default function App() {
         </header>
 
         {activeView === 'dashboard' ? (
-          <Dashboard 
-            notes={notes} 
-            processes={processes} 
-            user={user}
-            onEditNote={openEditModal}
-            onToggleNoteComplete={handleToggleComplete}
-            onToggleTask={handleToggleTask}
-            onCreateNote={openCreateModal}
-            onCreateTask={openDailyTaskModal}
-            openProcesses={() => setActiveView('processes')}
-            openNotes={(cat) => {
-              setSelectedCategory(cat);
-              setActiveView('notes');
-            }}
-          />
+          isDataLoading ? (
+            <DashboardSkeleton />
+          ) : (
+            <Dashboard 
+              notes={notes} 
+              processes={processes} 
+              user={user}
+              onEditNote={openEditModal}
+              onToggleNoteComplete={handleToggleComplete}
+              onToggleTask={handleToggleTask}
+              onCreateNote={openCreateModal}
+              onCreateTask={openDailyTaskModal}
+              openProcesses={() => setActiveView('processes')}
+              openNotes={(cat) => {
+                setSelectedCategory(cat);
+                setActiveView('notes');
+              }}
+            />
+          )
         ) : activeView === 'notes' ? (
           <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
             <header className="p-6 lg:p-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4 lg:gap-8 bg-white/50 lg:bg-transparent">
@@ -574,6 +589,7 @@ export default function App() {
         title="Excluir?"
         message="Esta ação não pode ser desfeita. Você realmente deseja remover este item?"
       />
+      <Toaster position="top-right" richColors closeButton />
     </div>
   );
 }

@@ -224,12 +224,20 @@ export default function Dashboard({
                 </button>
              </div>
              
-             <div className="bg-white border border-stone-200 rounded-[28px] lg:rounded-[32px] p-6 lg:p-8 shadow-sm flex-1 flex flex-col">
+              <div className="bg-white border border-stone-200 rounded-[28px] lg:rounded-[32px] p-6 lg:p-8 shadow-sm flex-1 flex flex-col">
                 {dailyTasks.length === 0 ? (
-                  <div className="flex-1 flex flex-col items-center justify-center text-stone-300 py-10">
-                    <ListTodo size={40} strokeWidth={1} />
-                    <p className="mt-4 text-[10px] font-black uppercase tracking-widest text-center">Nenhuma tarefa para hoje</p>
-                    <button onClick={onCreateTask} className="mt-4 text-primary text-[10px] font-black uppercase tracking-widest">Adicionar agora</button>
+                  <div className="flex-1 flex flex-col items-center justify-center text-center p-6 text-stone-300">
+                    <div className="w-16 h-16 bg-stone-50 rounded-full flex items-center justify-center mb-4">
+                      <ListTodo size={32} strokeWidth={1.5} className="text-stone-300" />
+                    </div>
+                    <p className="font-black text-stone-400 uppercase tracking-widest text-[10px] mb-1">Tudo limpo!</p>
+                    <p className="text-stone-300 text-[10px] font-bold max-w-[180px] uppercase tracking-tight">Você concluiu tudo ou não planejou o dia ainda.</p>
+                    <button 
+                      onClick={onCreateTask}
+                      className="mt-6 bg-stone-900 text-white px-6 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest hover:opacity-90 transition-all shadow-lg shadow-stone-200"
+                    >
+                      Planejar agora
+                    </button>
                   </div>
                 ) : (
                   <div className="space-y-6 flex-1 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
@@ -263,9 +271,18 @@ export default function Dashboard({
              <div className="bg-white border border-stone-200 rounded-[28px] lg:rounded-[32px] p-4 lg:p-6 shadow-sm divide-y divide-stone-50 flex-1 flex flex-col justify-between">
                 <div>
                   {recentNotes.length === 0 ? (
-                    <div className="py-20 text-center text-stone-300">
-                      <StickyNote size={40} className="mx-auto" strokeWidth={1} />
-                      <p className="mt-4 text-[10px] font-black uppercase tracking-widest">Nenhuma nota criada</p>
+                    <div className="py-20 text-center text-stone-300 flex flex-col items-center">
+                      <div className="w-16 h-16 bg-stone-50 rounded-full flex items-center justify-center mb-4">
+                        <StickyNote size={32} strokeWidth={1.5} className="text-stone-300" />
+                      </div>
+                      <p className="font-black text-stone-400 uppercase tracking-widest text-[10px] mb-1">Página em branco</p>
+                      <p className="text-stone-300 text-[10px] font-bold uppercase tracking-tight">Capture seus pensamentos agora.</p>
+                      <button 
+                        onClick={onCreateNote}
+                        className="mt-6 text-primary text-[10px] font-black uppercase tracking-widest hover:underline"
+                      >
+                        Nova Anotação
+                      </button>
                     </div>
                   ) : (
                     recentNotes.map(note => (
