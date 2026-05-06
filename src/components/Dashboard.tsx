@@ -117,42 +117,63 @@ export default function Dashboard({
   // Weekly Productivity derived from tasks (using current progress as baseline)
   const weeklyProductivity = totalTasks > 0 ? taskProgress : 0;
 
-  const renderTask = (task: NoteTask, depth: number = 0) => (
-    <React.Fragment key={task.id}>
-      <div className={`flex items-center justify-between group ${depth > 0 ? 'ml-8 mt-4' : ''}`}>
-        <div className="flex items-center gap-4">
-          <button 
-             onClick={() => dailyTasksNote && onToggleTask(dailyTasksNote.id, task.id)}
-             className={`shrink-0 transition-all active:scale-90 ${task.completed ? 'text-emerald-500' : 'text-stone-300 hover:text-stone-400'}`}
-          >
-            {task.completed ? <CheckCircle2 size={24} /> : <Circle size={24} />}
-          </button>
-          <div>
-            <p className={`font-bold transition-all ${task.completed ? 'text-stone-400 line-through' : 'text-stone-800'}`}>
-              {task.text}
-            </p>
-            <div className="flex items-center gap-2">
-              {task.priority && (
-                <span className={`text-[10px] font-black uppercase px-2 py-0.5 rounded-md mt-1 inline-block ${
-                  task.priority === 'alta' ? 'bg-red-50 text-red-500' : 
-                  task.priority === 'média' ? 'bg-amber-50 text-amber-500' : 'bg-stone-50 text-stone-500'
-                }`}>
-                  {task.priority}
-                </span>
-              )}
-              {task.time && !task.completed && (
-                <span className="text-[11px] font-bold text-stone-400 font-mono mt-1">{task.time}</span>
-              )}
+  const isOverdue = (task: NoteTask) => {
+    if (!task.time || task.completed) return false;
+    try {
+      const [hours, minutes] = task.time.split(':').map(Number);
+      const now = new Date();
+      const taskTime = new Date();
+      taskTime.setHours(hours, minutes, 0, 0);
+      
+      const limitTime = new Date(taskTime.getTime() + 60 * 60 * 1000);
+      return now > limitTime;
+    } catch (e) {
+      return false;
+    }
+  };
+
+  const renderTask = (task: NoteTask, depth: number = 0) => {
+    const overdue = isOverdue(task);
+    return (
+      <React.Fragment key={task.id}>
+        <div className={`flex items-center justify-between group ${depth > 0 ? 'ml-8 mt-4' : ''}`}>
+          <div className="flex items-center gap-4">
+            <button 
+               onClick={() => dailyTasksNote && onToggleTask(dailyTasksNote.id, task.id)}
+               className={`shrink-0 transition-all active:scale-90 ${task.completed ? 'text-emerald-500' : overdue ? 'text-red-500 animate-pulse' : 'text-stone-300 hover:text-stone-400'}`}
+            >
+              {task.completed ? <CheckCircle2 size={24} /> : overdue ? <Zap size={24} className="fill-red-500" /> : <Circle size={24} />}
+            </button>
+            <div>
+              <p className={`font-bold transition-all ${task.completed ? 'text-stone-400 line-through' : overdue ? 'text-red-600 underline decoration-red-500/30 underline-offset-4' : 'text-stone-800'}`}>
+                {task.text}
+              </p>
+              <div className="flex items-center gap-2">
+                {task.priority && (
+                  <span className={`text-[10px] font-black uppercase px-2 py-0.5 rounded-md mt-1 inline-block ${
+                    overdue ? 'bg-red-50 text-red-600' :
+                    task.priority === 'alta' ? 'bg-red-50 text-red-500' : 
+                    task.priority === 'média' ? 'bg-amber-50 text-amber-500' : 'bg-stone-50 text-stone-500'
+                  }`}>
+                    {task.priority}
+                  </span>
+                )}
+                {task.time && !task.completed && (
+                  <span className={`text-[11px] font-bold font-mono mt-1 ${overdue ? 'text-red-600' : 'text-stone-400'}`}>
+                    {task.time} {overdue && '• ATRASADO'}
+                  </span>
+                )}
+              </div>
             </div>
           </div>
+          {task.time && task.completed && (
+            <span className="text-[11px] font-bold text-stone-400 font-mono">{task.time}</span>
+          )}
         </div>
-        {task.time && task.completed && (
-          <span className="text-[11px] font-bold text-stone-400 font-mono">{task.time}</span>
-        )}
-      </div>
-      {task.subtasks?.map(sub => renderTask(sub, depth + 1))}
-    </React.Fragment>
-  );
+        {task.subtasks?.map(sub => renderTask(sub, depth + 1))}
+      </React.Fragment>
+    );
+  };
 
   const hour = new Date().getHours();
   const greeting = hour >= 5 && hour < 12 ? "Bom dia" : hour >= 12 && hour < 18 ? "Boa tarde" : "Boa noite";

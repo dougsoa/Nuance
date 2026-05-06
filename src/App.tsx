@@ -34,6 +34,28 @@ import { Toaster, toast } from 'sonner';
 import { DashboardSkeleton } from './components/DashboardSkeleton';
 import ProcessModule from './components/ProcessModule';
 
+// Helper to remove undefined fields from objects and arrays before sending to Firestore
+const cleanData = (obj: any): any => {
+  if (Array.isArray(obj)) {
+    return obj.map(v => cleanData(v));
+  }
+  
+  // Check for a plain object to avoid recursing into Firestore FieldValues or other special objects
+  const isPlainObject = obj !== null && typeof obj === 'object' && (obj.constructor === Object || obj.constructor === undefined);
+  
+  if (isPlainObject) {
+    const newObj: any = {};
+    Object.keys(obj).forEach(key => {
+      if (obj[key] !== undefined) {
+        newObj[key] = cleanData(obj[key]);
+      }
+    });
+    return newObj;
+  }
+  
+  return obj;
+};
+
 export default function App() {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
@@ -119,12 +141,12 @@ export default function App() {
   const handleSaveProcess = async (data: Partial<Process>) => {
     if (!user) return;
     try {
-      await addDoc(collection(db, 'processes'), {
+      await addDoc(collection(db, 'processes'), cleanData({
         ...data,
         userId: user.uid,
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
-      });
+      }));
       toast.success('Processo criado com sucesso!');
     } catch (error) {
       toast.error('Erro ao salvar processo.');
@@ -135,17 +157,19 @@ export default function App() {
   const handleSaveNote = async (data: Partial<Note>) => {
     if (!user) return;
 
+    const cleanedData = cleanData(data);
+
     try {
       if (editingNote && editingNote.id) {
         const noteRef = doc(db, 'notes', editingNote.id);
         await updateDoc(noteRef, {
-          ...data,
+          ...cleanedData,
           updatedAt: serverTimestamp(),
         });
         toast.success('Anotação atualizada!');
       } else {
         await addDoc(collection(db, 'notes'), {
-          ...data,
+          ...cleanedData,
           completed: false,
           userId: user.uid,
           createdAt: serverTimestamp(),

@@ -410,15 +410,20 @@ export default function NoteModal({ isOpen, onClose, onSave, onDelete, initialDa
 
     setLoading(true);
     try {
-      await onSave({
+      const saveData: Partial<Note> = {
         title,
         content,
         category: isDailyTask ? 'Daily Tasks' : category,
         tags,
         tasks,
         isDailyTask,
-        scheduledDate: isDailyTask ? scheduledDate : undefined,
-      });
+      };
+
+      if (isDailyTask) {
+        saveData.scheduledDate = scheduledDate;
+      }
+
+      await onSave(saveData);
       onClose();
     } catch (err) {
       console.error(err);

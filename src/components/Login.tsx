@@ -81,95 +81,93 @@ export default function Login() {
 
   if (isForgotPassword) {
     return (
-      <div className="fixed inset-0 overflow-y-auto bg-natural-bg font-sans scrollbar-hide">
-        <div className="min-h-full flex items-center justify-center p-4">
-          <div className="relative w-full max-w-md mx-auto">
-            <div className="absolute -inset-1 bg-gradient-to-r from-primary/20 to-primary/10 rounded-[40px] blur-xl transition duration-1000 hidden sm:block"></div>
-            
-            <motion.div 
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              className="relative bg-white rounded-[32px] sm:rounded-[40px] border border-stone-200 p-6 sm:p-8 shadow-2xl shadow-stone-200/50"
+      <div className="min-h-screen bg-natural-bg font-sans flex items-center justify-center p-4">
+        <div className="relative w-full max-w-md mx-auto">
+          <div className="absolute -inset-1 bg-gradient-to-r from-primary/20 to-primary/10 rounded-[40px] blur-xl transition duration-1000 hidden sm:block"></div>
+          
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="relative bg-white rounded-[32px] sm:rounded-[40px] border border-stone-200 p-6 sm:p-8 shadow-2xl shadow-stone-200/50"
+          >
+            <button 
+              onClick={() => {
+                setIsForgotPassword(false);
+                setError('');
+                setSuccessMessage('');
+              }}
+              className="absolute left-6 top-6 sm:left-8 sm:top-8 text-stone-400 hover:text-stone-900 transition-colors"
             >
-              <button 
-                onClick={() => {
-                  setIsForgotPassword(false);
-                  setError('');
-                  setSuccessMessage('');
-                }}
-                className="absolute left-6 top-6 sm:left-8 sm:top-8 text-stone-400 hover:text-stone-900 transition-colors"
-              >
-                <ArrowLeft size={20} />
-              </button>
+              <ArrowLeft size={20} />
+            </button>
 
-              <div className="text-center mb-6 sm:mb-8 mt-4 sm:mt-0">
-                <div className="w-12 h-12 sm:w-16 sm:h-16 bg-stone-100 rounded-2xl flex items-center justify-center text-primary mx-auto mb-4 sm:mb-6">
-                  <KeyRound size={24} className="sm:w-8 sm:h-8" />
+            <div className="text-center mb-6 sm:mb-8 mt-4 sm:mt-0">
+              <div className="w-12 h-12 sm:w-16 sm:h-16 bg-stone-100 rounded-2xl flex items-center justify-center text-primary mx-auto mb-4 sm:mb-6">
+                <KeyRound size={24} className="sm:w-8 sm:h-8" />
+              </div>
+              <h2 className="text-xl sm:text-2xl font-black text-stone-900 tracking-tight uppercase">
+                Recuperar Senha
+              </h2>
+              <p className="text-stone-500 text-[10px] sm:text-xs mt-2 font-medium uppercase tracking-widest max-w-[200px] mx-auto">
+                Enviaremos um link para o seu e-mail
+              </p>
+            </div>
+
+            <form onSubmit={handleResetPassword} className="space-y-4">
+              <div className="space-y-1">
+                <label className="text-[10px] font-bold uppercase tracking-widest text-stone-400 ml-1">Seu E-mail</label>
+                <div className="relative">
+                  <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-stone-300" size={18} />
+                  <input 
+                    type="email"
+                    placeholder="exemplo@email.com"
+                    required
+                    className="w-full bg-stone-50 border border-stone-100 rounded-2xl py-3 pl-12 pr-4 text-sm outline-none focus:border-primary focus:bg-white transition-all"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                  />
                 </div>
-                <h2 className="text-xl sm:text-2xl font-black text-stone-900 tracking-tight uppercase">
-                  Recuperar Senha
-                </h2>
-                <p className="text-stone-500 text-[10px] sm:text-xs mt-2 font-medium uppercase tracking-widest max-w-[200px] mx-auto">
-                  Enviaremos um link para o seu e-mail
-                </p>
               </div>
 
-              <form onSubmit={handleResetPassword} className="space-y-4">
-                <div className="space-y-1">
-                  <label className="text-[10px] font-bold uppercase tracking-widest text-stone-400 ml-1">Seu E-mail</label>
-                  <div className="relative">
-                    <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-stone-300" size={18} />
-                    <input 
-                      type="email"
-                      placeholder="exemplo@email.com"
-                      required
-                      className="w-full bg-stone-50 border border-stone-100 rounded-2xl py-3 pl-12 pr-4 text-sm outline-none focus:border-primary focus:bg-white transition-all"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                    />
-                  </div>
+              {error && (
+                <p className="text-red-500 text-[11px] font-bold uppercase tracking-tight text-center bg-red-50 py-2 rounded-xl border border-red-100">
+                  {error}
+                </p>
+              )}
+
+              {successMessage && (
+                <div className="flex flex-col items-center gap-2 text-green-600 text-[11px] font-bold uppercase tracking-tight text-center bg-green-50 p-4 rounded-xl border border-green-100">
+                  <CheckCircle2 size={24} />
+                  <span>{successMessage}</span>
                 </div>
+              )}
 
-                {error && (
-                  <p className="text-red-500 text-[11px] font-bold uppercase tracking-tight text-center bg-red-50 py-2 rounded-xl border border-red-100">
-                    {error}
-                  </p>
-                )}
-
-                {successMessage && (
-                  <div className="flex flex-col items-center gap-2 text-green-600 text-[11px] font-bold uppercase tracking-tight text-center bg-green-50 p-4 rounded-xl border border-green-100">
-                    <CheckCircle2 size={24} />
-                    <span>{successMessage}</span>
-                  </div>
-                )}
-
-                {!successMessage && (
-                  <button 
-                    type="submit"
-                    disabled={loading}
-                    className="w-full bg-primary text-white py-3.5 sm:py-4 rounded-2xl font-bold flex items-center justify-center gap-2 hover:opacity-95 transition-all active:scale-95 shadow-lg shadow-primary/20 disabled:opacity-50"
-                  >
-                    {loading ? (
-                      <Loader2 className="animate-spin" size={20} />
-                    ) : (
-                      <>
-                        <Mail size={18} />
-                        <span>Enviar Link</span>
-                      </>
-                    )}
-                  </button>
-                )}
-              </form>
-            </motion.div>
-          </div>
+              {!successMessage && (
+                <button 
+                  type="submit"
+                  disabled={loading}
+                  className="w-full bg-primary text-white py-3.5 sm:py-4 rounded-2xl font-bold flex items-center justify-center gap-2 hover:opacity-95 transition-all active:scale-95 shadow-lg shadow-primary/20 disabled:opacity-50"
+                >
+                  {loading ? (
+                    <Loader2 className="animate-spin" size={20} />
+                  ) : (
+                    <>
+                      <Mail size={18} />
+                      <span>Enviar Link</span>
+                    </>
+                  )}
+                </button>
+              )}
+            </form>
+          </motion.div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="fixed inset-0 bg-natural-bg font-sans overflow-y-auto scrollbar-hide flex items-center justify-center p-4">
-      <div className="relative w-full max-w-md mx-auto my-auto py-4 sm:py-8">
+    <div className="min-h-screen bg-natural-bg font-sans flex items-center justify-center p-4">
+      <div className="relative w-full max-w-md mx-auto">
         <div className="absolute -inset-1 bg-gradient-to-r from-primary/20 to-primary/10 rounded-[40px] blur-xl transition duration-1000 hidden sm:block"></div>
         
         <motion.div 

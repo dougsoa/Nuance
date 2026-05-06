@@ -4,7 +4,11 @@ import { Resend } from 'resend';
 import dotenv from 'dotenv';
 import { initializeApp, getApps, getApp, App as FirebaseAdminApp } from 'firebase-admin/app';
 import { getAuth } from 'firebase-admin/auth';
-import { readFileSync } from 'fs';
+import { readFileSync, existsSync } from 'fs';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 dotenv.config();
 
@@ -33,8 +37,6 @@ if (firebaseConfig) {
     console.error("CRITICAL: Error initializing Firebase Admin:", error);
   }
 }
-
-const __dirname = path.resolve();
 
 async function startServer() {
   const app = express();
@@ -281,7 +283,12 @@ async function startServer() {
     });
     app.use(vite.middlewares);
   } else {
-    const distPath = path.join(process.cwd(), 'dist');
+    // Check if we are running from root or from a distribution folder
+    const distPath = existsSync(path.join(__dirname, 'dist')) 
+      ? path.join(__dirname, 'dist') 
+      : __dirname;
+      
+    console.log(`Serving static files from: ${distPath}`);
     app.use(express.static(distPath));
     app.get('*', (req, res) => {
       res.sendFile(path.join(distPath, 'index.html'));
