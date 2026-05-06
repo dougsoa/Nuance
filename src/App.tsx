@@ -5,21 +5,9 @@
 
 import { useState, useEffect } from 'react';
 import { onAuthStateChanged, User } from 'firebase/auth';
-import { 
-  collection, 
-  query, 
-  where, 
-  onSnapshot, 
-  addDoc, 
-  updateDoc, 
-  deleteDoc, 
-  doc, 
-  serverTimestamp,
-  orderBy
-} from 'firebase/firestore';
-import { auth, db } from './lib/firebase';
-import { Note, OperationType, Process, NoteTask } from './types';
-import { handleFirestoreError, cleanData } from './lib/utils';
+import { auth } from './lib/firebase';
+import { Note, Process } from './types';
+import { NoteService, ProcessService } from './services/firestoreService';
 import NoteCard from './components/NoteCard';
 import NoteModal from './components/NoteModal';
 import ProcessModal from './components/ProcessModal';
@@ -71,23 +59,14 @@ export default function App() {
       return;
     }
 
-    const q = query(
-      collection(db, 'notes'), 
-      where('userId', '==', user.uid),
-      orderBy('createdAt', 'desc')
+    const unsubscribe = NoteService.subscribe(
+      user.uid, 
+      (data) => {
+        setNotes(data);
+        setIsDataLoading(false);
+      },
+      () => setIsDataLoading(false)
     );
-
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const notesData = snapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      })) as Note[];
-      setNotes(notesData);
-      setIsDataLoading(false);
-    }, (error) => {
-      setIsDataLoading(false); // Stop loading even on error to show empty state/error info
-      handleFirestoreError(error, OperationType.LIST, 'notes');
-    });
 
     return unsubscribe;
   }, [user]);
@@ -99,155 +78,54 @@ export default function App() {
       return;
     }
 
-    const q = query(
-      collection(db, 'processes'), 
-      where('userId', '==', user.uid),
-      orderBy('createdAt', 'desc')
-    );
-
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const data = snapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      })) as Process[];
-      setProcesses(data);
-    }, (error) => {
-      handleFirestoreError(error, OperationType.LIST, 'processes');
-    });
-
+    const unsubscribe = ProcessService.subscribe(user.uid, setProcesses);
     return unsubscribe;
   }, [user]);
 
   const handleSaveProcess = async (data: Partial<Process>) => {
     if (!user) return;
     try {
-      const cleanedData = cleanData(data);
-      if (editingProcess && editingProcess.id) {
-        const processRef = doc(db, 'processes', editingProcess.id);
-        await updateDoc(processRef, {
-          ...cleanedData,
-          updatedAt: serverTimestamp(),
-        });
-        toast.success('Processo atualizado com sucesso!');
-      } else {
-        await addDoc(collection(db, 'processes'), {
-          ...cleanedData,
-          userId: user.uid,
-          createdAt: serverTimestamp(),
-          updatedAt: serverTimestamp(),
-        });
-        toast.success('Processo criado com sucesso!');
-      }
+      await ProcessService.save(user, data, editingProcess);
+      toast.success(editingProcess ? 'Processo atualizado!' : 'Processo criado!');
     } catch (error) {
       toast.error('Erro ao salvar processo.');
-      handleFirestoreError(error, editingProcess ? OperationType.UPDATE : OperationType.CREATE, 'processes');
     }
   };
 
   const handleDeleteProcess = async (id: string) => {
     try {
-      await deleteDoc(doc(db, 'processes', id));
+      await ProcessService.delete(id);
       toast.success('Processo excluído!');
     } catch (error) {
       toast.error('Erro ao excluir processo.');
-      handleFirestoreError(error, OperationType.DELETE, `processes/${id}`);
     }
   };
 
   const handleSaveNote = async (data: Partial<Note>) => {
     if (!user) return;
-
-    const cleanedData = cleanData(data);
-
     try {
-      if (editingNote && editingNote.id) {
-        const noteRef = doc(db, 'notes', editingNote.id);
-        await updateDoc(noteRef, {
-          ...cleanedData,
-          updatedAt: serverTimestamp(),
-        });
-        toast.success('Anotação atualizada!');
-      } else {
-        await addDoc(collection(db, 'notes'), {
-          ...cleanedData,
-          completed: false,
-          userId: user.uid,
-          createdAt: serverTimestamp(),
-          updatedAt: serverTimestamp(),
-        });
-        toast.success('Anotação criada!');
-      }
+      await NoteService.save(user, data, editingNote);
+      toast.success(editingNote ? 'Anotação atualizada!' : 'Anotação criada!');
     } catch (error) {
       toast.error('Erro ao salvar.');
-      handleFirestoreError(error, editingNote ? OperationType.UPDATE : OperationType.CREATE, 'notes');
     }
   };
 
   const handleToggleTask = async (noteId: string, taskId: string) => {
     const note = notes.find(n => n.id === noteId);
-    if (!note || !note.tasks) return;
-
-    const processToggle = (tasks: NoteTask[]): { updatedTasks: NoteTask[], found: boolean } => {
-      let foundInScope = false;
-      const newList = tasks.map(task => {
-        let updatedTask = { ...task };
-
-        if (task.id === taskId) {
-          foundInScope = true;
-          const targetStatus = !task.completed;
-          updatedTask.completed = targetStatus;
-          
-          // If toggling a parent, propagate state to all subtasks
-          if (updatedTask.subtasks && updatedTask.subtasks.length > 0) {
-            const setStatusRecursive = (subs: NoteTask[]): NoteTask[] => 
-              subs.map(s => ({
-                ...s,
-                completed: targetStatus,
-                subtasks: s.subtasks ? setStatusRecursive(s.subtasks) : undefined
-              }));
-            updatedTask.subtasks = setStatusRecursive(updatedTask.subtasks);
-          }
-        } else if (task.subtasks && task.subtasks.length > 0) {
-          const result = processToggle(task.subtasks);
-          if (result.found) {
-            foundInScope = true;
-            updatedTask.subtasks = result.updatedTasks;
-            
-            // Auto-check parent based on children: if all subtasks are done, mark parent as done
-            const allSubsDone = updatedTask.subtasks.every(s => s.completed);
-            updatedTask.completed = allSubsDone;
-          }
-        }
-
-        return updatedTask;
-      });
-
-      return { updatedTasks: newList, found: foundInScope };
-    };
-
-    const { updatedTasks } = processToggle(note.tasks);
+    if (!note) return;
     try {
-      const noteRef = doc(db, 'notes', noteId);
-      await updateDoc(noteRef, cleanData({ 
-        tasks: updatedTasks,
-        updatedAt: serverTimestamp() 
-      }));
+      await NoteService.toggleTask(note, taskId);
     } catch (error) {
-      handleFirestoreError(error, OperationType.UPDATE, `notes/${noteId}`);
+      // Error handled by service
     }
   };
 
   const handleToggleComplete = async (id: string, currentStatus: boolean) => {
     try {
-      const noteRef = doc(db, 'notes', id);
-      const isCompleting = !currentStatus;
-      await updateDoc(noteRef, {
-        completed: isCompleting,
-        completedAt: isCompleting ? serverTimestamp() : null,
-        updatedAt: serverTimestamp(),
-      });
+      await NoteService.toggleComplete(id, currentStatus);
     } catch (error) {
-      handleFirestoreError(error, OperationType.UPDATE, `notes/${id}`);
+      // Error handled by service
     }
   };
 
@@ -259,12 +137,11 @@ export default function App() {
   const confirmDelete = async () => {
     if (!noteIdToDelete) return;
     try {
-      await deleteDoc(doc(db, 'notes', noteIdToDelete));
+      await NoteService.delete(noteIdToDelete);
       setNoteIdToDelete(null);
       toast.success('Excluído com sucesso');
     } catch (error) {
       toast.error('Erro ao excluir');
-      handleFirestoreError(error, OperationType.DELETE, `notes/${noteIdToDelete}`);
     }
   };
 

@@ -23,20 +23,28 @@ export function cn(...classes: (string | undefined | boolean)[]) {
 
 // Helper to remove undefined fields from objects and arrays before sending to Firestore
 export const cleanData = (obj: any): any => {
+  if (obj === null || typeof obj !== 'object') {
+    return obj;
+  }
+
   if (Array.isArray(obj)) {
     return obj.map(v => cleanData(v));
   }
   
   // Check for a plain object to avoid recursing into Firestore FieldValues or other special objects
-  const isPlainObject = obj !== null && typeof obj === 'object' && (obj.constructor === Object || obj.constructor === undefined);
+  // We use constructor check for speed, and also check if it's a basic object.
+  const isPlainObject = obj.constructor === Object || obj.constructor === undefined;
   
   if (isPlainObject) {
     const newObj: any = {};
-    Object.keys(obj).forEach(key => {
-      if (obj[key] !== undefined) {
-        newObj[key] = cleanData(obj[key]);
+    for (const key in obj) {
+      if (Object.prototype.hasOwnProperty.call(obj, key)) {
+        const val = obj[key];
+        if (val !== undefined) {
+          newObj[key] = cleanData(val);
+        }
       }
-    });
+    }
     return newObj;
   }
   

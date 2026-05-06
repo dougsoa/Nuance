@@ -1,19 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  collection, 
-  query, 
-  where, 
-  onSnapshot, 
-  addDoc, 
-  updateDoc, 
-  deleteDoc, 
-  doc, 
-  serverTimestamp,
-  orderBy
-} from 'firebase/firestore';
-import { db } from '../lib/firebase';
-import { Process, OperationType } from '../types';
-import { handleFirestoreError, cleanData } from '../lib/utils';
+import { Process } from '../types';
+import { NoteService, ProcessService } from '../services/firestoreService';
 import { motion, AnimatePresence } from 'motion/react';
 import { GitBranch, Plus, Search, X, ChevronRight, CornerDownRight, Info } from 'lucide-react';
 import ProcessCard from './ProcessCard';
@@ -43,44 +30,15 @@ export default function ProcessModule({ userId, initialSelectedProcessId }: Proc
   }, [initialSelectedProcessId]);
 
   useEffect(() => {
-    const q = query(
-      collection(db, 'processes'), 
-      where('userId', '==', userId),
-      orderBy('createdAt', 'desc')
-    );
-
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const data = snapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      })) as Process[];
-      setProcesses(data);
-    }, (error) => {
-      handleFirestoreError(error, OperationType.LIST, 'processes');
-    });
-
+    const unsubscribe = ProcessService.subscribe(userId, setProcesses);
     return unsubscribe;
   }, [userId]);
 
   const handleSaveProcess = async (data: Partial<Process>) => {
-    const cleanedData = cleanData(data);
     try {
-      if (editingProcess && editingProcess.id) {
-        const ref = doc(db, 'processes', editingProcess.id);
-        await updateDoc(ref, {
-          ...cleanedData,
-          updatedAt: serverTimestamp(),
-        });
-      } else {
-        await addDoc(collection(db, 'processes'), {
-          ...cleanedData,
-          userId,
-          createdAt: serverTimestamp(),
-          updatedAt: serverTimestamp(),
-        });
-      }
+      await ProcessService.save({ uid: userId } as any, data, editingProcess);
     } catch (error) {
-      handleFirestoreError(error, editingProcess ? OperationType.UPDATE : OperationType.CREATE, 'processes');
+      // Error handled by service
     }
   };
 
@@ -92,11 +50,11 @@ export default function ProcessModule({ userId, initialSelectedProcessId }: Proc
   const confirmDelete = async () => {
     if (!processIdToDelete) return;
     try {
-      await deleteDoc(doc(db, 'processes', processIdToDelete));
+      await ProcessService.delete(processIdToDelete);
       if (selectedProcessId === processIdToDelete) setSelectedProcessId(null);
       setProcessIdToDelete(null);
     } catch (error) {
-      handleFirestoreError(error, OperationType.DELETE, `processes/${processIdToDelete}`);
+      // Error handled by service
     }
   };
 

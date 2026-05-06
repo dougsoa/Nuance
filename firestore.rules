@@ -29,15 +29,15 @@ service cloud.firestore {
 
     // Note validation
     function isValidNoteSchema(data) {
-      return (data.get('title', 'valid') is string && data.get('title', '').size() <= 200) &&
-             (data.get('content', 'valid') is string && data.get('content', '').size() <= 10000) &&
+      return (data.get('title', '') is string && data.get('title', '').size() <= 200) &&
+             (data.get('content', '') is string && data.get('content', '').size() <= 10000) &&
              (data.get('category', null) == null || data.category is string) &&
-             (data.get('tags', null) == null || (data.tags is list && data.tags.size() <= 60)) &&
+             (data.get('tags', []) is list && data.get('tags', []).size() <= 60) &&
              (data.get('completed', false) is bool) &&
              (data.get('isDailyTask', false) is bool) &&
-             (data.get('scheduledDate', null) == null || (data.scheduledDate is string && data.scheduledDate.size() <= 20)) &&
+             (data.get('scheduledDate', null) == null || (data.scheduledDate is string && data.scheduledDate.size() <= 50)) &&
              (data.get('tasks', []) is list && data.get('tasks', []).size() <= 150) &&
-             (data.get('completedAt', null) == null || data.completedAt is timestamp || data.completedAt == null);
+             (data.get('completedAt', null) == null || data.completedAt is timestamp);
     }
 
     function isValidNoteCreate(data) {
@@ -49,12 +49,12 @@ service cloud.firestore {
     }
 
     match /notes/{noteId} {
-      allow get: if isOwner(existing().userId) && isValidId(noteId);
+      allow get: if isOwner(existing().userId);
       allow list: if isSignedIn() && resource.data.userId == request.auth.uid;
       
-      allow create: if isSignedIn() && isValidNoteCreate(incoming()) && isValidId(noteId);
+      allow create: if isSignedIn() && isValidNoteCreate(incoming());
       
-      allow update: if isSignedIn() && isOwner(existing().userId) && isValidId(noteId) && (
+      allow update: if isSignedIn() && isOwner(existing().userId) && (
         incoming().userId == existing().userId &&
         incoming().createdAt == existing().createdAt &&
         incoming().updatedAt == request.time &&
@@ -76,17 +76,16 @@ service cloud.firestore {
     }
 
     match /processes/{processId} {
-      allow get: if isOwner(existing().userId) && isValidId(processId);
+      allow get: if isOwner(existing().userId);
       allow list: if isSignedIn() && resource.data.userId == request.auth.uid;
       
       allow create: if isSignedIn() && 
                       incoming().userId == request.auth.uid &&
                       incoming().createdAt == request.time &&
                       incoming().updatedAt == request.time &&
-                      isValidProcessSchema(incoming()) &&
-                      isValidId(processId);
+                      isValidProcessSchema(incoming());
       
-      allow update: if isSignedIn() && isOwner(existing().userId) && isValidId(processId) && (
+      allow update: if isSignedIn() && isOwner(existing().userId) && (
         incoming().userId == existing().userId &&
         incoming().createdAt == existing().createdAt &&
         incoming().updatedAt == request.time &&

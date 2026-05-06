@@ -16,8 +16,15 @@ import {
   ArrowRight
 } from 'lucide-react';
 import { Note, Process, NoteTask } from '../types';
-import { format, isToday } from 'date-fns';
+import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { 
+  countTasks, 
+  countAllPending, 
+  isOverdue, 
+  hasPendingSubtasks, 
+  getDailyTasksNote 
+} from '../lib/dashboardUtils';
 
 interface DashboardProps {
   notes: Note[];
@@ -46,46 +53,11 @@ export default function Dashboard({
   openNotes,
   onActivityClick
 }: DashboardProps) {
-  const todayStr = format(new Date(), 'yyyy-MM-dd');
-  const dailyTasksNote = notes.find(n => 
-    n.isDailyTask && 
-    (n.scheduledDate === todayStr || (!n.scheduledDate && isToday(n.createdAt?.toDate ? n.createdAt.toDate() : new Date())))
-  );
+  const dailyTasksNote = getDailyTasksNote(notes);
   const dailyTasks = dailyTasksNote?.tasks || [];
   
-  // Recursive task counting including subtasks
-  const countTasks = (tasks: NoteTask[]): { total: number, completed: number } => {
-    let total = 0;
-    let completed = 0;
-    tasks.forEach(t => {
-      total++;
-      if (t.completed) completed++;
-      if (t.subtasks && t.subtasks.length > 0) {
-        const sub = countTasks(t.subtasks);
-        total += sub.total;
-        completed += sub.completed;
-      }
-    });
-    return { total, completed };
-  };
-
   const { total: totalTasks, completed: completedTasks } = countTasks(dailyTasks);
   const taskProgress = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
-
-  // Recursive task counting for ALL pending tasks across all notes
-  const countAllPending = (allNotes: Note[]): number => {
-    let count = 0;
-    const traverse = (tasks: NoteTask[]) => {
-      tasks.forEach(t => {
-        if (!t.completed) count++;
-        if (t.subtasks) traverse(t.subtasks);
-      });
-    };
-    allNotes.forEach(n => {
-      if (n.tasks) traverse(n.tasks);
-    });
-    return count;
-  };
 
   const totalPendingAll = countAllPending(notes);
 
@@ -96,7 +68,7 @@ export default function Dashboard({
   const activities = [
     ...notes.map(n => ({
       id: n.id,
-      type: n.isDailyTask ? 'task' : 'note',
+      type: n.isDailyTask ? 'task' : 'note' as const,
       text: n.isDailyTask 
         ? `Tarefa para ${n.scheduledDate ? format(new Date(n.scheduledDate + 'T12:00:00'), "dd/MM") : 'hoje'} criada` 
         : `Nota "${n.title}" criada`,
@@ -107,7 +79,7 @@ export default function Dashboard({
     })),
     ...processes.map(p => ({
       id: p.id,
-      type: 'process',
+      type: 'process' as const,
       text: `Processo "${p.title}" atualizado`,
       date: p.updatedAt?.toDate ? p.updatedAt.toDate() : p.createdAt?.toDate ? p.createdAt.toDate() : new Date(),
       icon: <GitBranch size={14} />,
@@ -118,26 +90,6 @@ export default function Dashboard({
   
   // Weekly Productivity derived from tasks (using current progress as baseline)
   const weeklyProductivity = totalTasks > 0 ? taskProgress : 0;
-
-  const isOverdue = (task: NoteTask) => {
-    if (!task.time || task.completed) return false;
-    try {
-      const [hours, minutes] = task.time.split(':').map(Number);
-      const now = new Date();
-      const taskTime = new Date();
-      taskTime.setHours(hours, minutes, 0, 0);
-      
-      const limitTime = new Date(taskTime.getTime() + 60 * 60 * 1000);
-      return now > limitTime;
-    } catch (e) {
-      return false;
-    }
-  };
-
-  const hasPendingSubtasks = (task: NoteTask): boolean => {
-    if (!task.subtasks || task.subtasks.length === 0) return false;
-    return task.subtasks.some(sub => !sub.completed || hasPendingSubtasks(sub));
-  };
 
   const renderTask = (task: NoteTask, depth: number = 0) => {
     const overdue = isOverdue(task);
