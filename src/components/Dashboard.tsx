@@ -174,8 +174,8 @@ export default function Dashboard({
         </header>
 
         {/* KPIs Grid */}
-        <div className="flex overflow-x-auto snap-x snap-mandatory pb-4 -mx-6 px-6 sm:mx-0 sm:px-0 sm:pb-0 sm:grid sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6 custom-scrollbar-hide sm:custom-scrollbar">
-          <div className="min-w-[280px] sm:min-w-0 snap-center">
+        <div className="flex overflow-x-auto snap-x snap-mandatory pb-4 -mx-6 px-6 items-stretch sm:mx-0 sm:px-0 sm:pb-0 sm:grid sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6 custom-scrollbar-hide sm:custom-scrollbar">
+          <div className="min-w-[280px] sm:min-w-0 snap-center flex flex-col">
             <KpiCard 
               title="Tarefas de hoje"
               value={totalTasks - completedTasks}
@@ -183,33 +183,37 @@ export default function Dashboard({
               icon={<ListTodo size={24} />}
               color="bg-primary/10 text-primary"
               progress={taskProgress}
+              className="h-full"
             />
           </div>
-          <div className="min-w-[280px] sm:min-w-0 snap-center">
+          <div className="min-w-[280px] sm:min-w-0 snap-center flex flex-col">
             <KpiCard 
               title="Notas registradas"
               value={nonDailyNotes.length}
               subtitle="notas"
               icon={<StickyNote size={24} />}
               color="bg-emerald-50 text-emerald-600"
+              className="h-full"
             />
           </div>
-          <div className="min-w-[280px] sm:min-w-0 snap-center">
+          <div className="min-w-[280px] sm:min-w-0 snap-center flex flex-col">
             <KpiCard 
               title="Processos ativos"
               value={processes.length}
               subtitle={processes.length === 1 ? "processo" : "processos"}
               icon={<GitBranch size={24} />}
               color="bg-indigo-50 text-indigo-600"
+              className="h-full"
             />
           </div>
-          <div className="min-w-[280px] sm:min-w-0 snap-center">
+          <div className="min-w-[280px] sm:min-w-0 snap-center flex flex-col">
             <KpiCard 
               title="Tarefas pendentes"
               value={totalPendingAll}
               subtitle={totalPendingAll === 1 ? "tarefa / subtarefa" : "tarefas / subtarefas"}
               icon={<ListTodo size={24} />}
               color="bg-amber-50 text-amber-600"
+              className="h-full"
             />
           </div>
         </div>
@@ -385,18 +389,19 @@ export default function Dashboard({
               <h3 className="text-xl font-bold text-stone-900 tracking-tight">Insights para você</h3>
             </div>
             
-            <div className="flex overflow-x-auto snap-x snap-mandatory pb-4 -mx-6 px-6 sm:mx-0 sm:px-0 sm:pb-0 sm:grid sm:grid-cols-2 md:grid-cols-3 gap-6 scrollbar-hide sm:overflow-visible">
-              <div className="min-w-[280px] sm:min-w-0 snap-center">
+            <div className="flex overflow-x-auto snap-x snap-mandatory pb-4 -mx-6 px-6 items-stretch sm:mx-0 sm:px-0 sm:pb-0 sm:grid sm:grid-cols-2 md:grid-cols-3 gap-6 scrollbar-hide sm:overflow-visible">
+              <div className="min-w-[280px] sm:min-w-0 snap-center flex flex-col">
                 <InsightCard 
                   icon={<TrendingUp className={taskProgress >= 100 ? "text-emerald-500" : "text-primary"} size={20} />}
                   text={taskProgress >= 100 
                     ? "Incrível! Você concluiu todas as tarefas de hoje. Aproveite o tempo extra!" 
                     : `Você concluiu ${taskProgress}% das tarefas de hoje. Mantenha o foco!`}
                   color={taskProgress >= 100 ? "bg-emerald-50" : "bg-primary/10"}
+                  className="h-full"
                 />
               </div>
               
-              <div className="min-w-[280px] sm:min-w-0 snap-center">
+              <div className="min-w-[280px] sm:min-w-0 snap-center flex flex-col">
                 {(() => {
                   const lastUpdate = processes[0]?.updatedAt?.toDate() || processes[0]?.createdAt?.toDate() || new Date();
                   const daysDiff = Math.floor((new Date().getTime() - lastUpdate.getTime()) / (1000 * 60 * 60 * 24));
@@ -412,12 +417,13 @@ export default function Dashboard({
                       color={daysDiff > 2 ? "bg-amber-50" : "bg-indigo-50"}
                       action={processes.length === 0 ? "Mapear agora" : "Ver processos"}
                       onAction={openProcesses}
+                      className="h-full"
                     />
                   );
                 })()}
               </div>
 
-              <div className="min-w-[280px] sm:min-w-0 snap-center">
+              <div className="min-w-[280px] sm:min-w-0 snap-center flex flex-col">
                 {(() => {
                   const notesWithoutTags = nonDailyNotes.filter(n => !n.tags || n.tags.length === 0).length;
                   return (
@@ -429,6 +435,7 @@ export default function Dashboard({
                       color={notesWithoutTags > 0 ? "bg-amber-50" : "bg-emerald-50"}
                       action={notesWithoutTags > 0 ? "Ver notas" : undefined}
                       onAction={() => openNotes(null)}
+                      className="h-full"
                     />
                   );
                 })()}
@@ -447,20 +454,22 @@ export default function Dashboard({
   );
 }
 
-function KpiCard({ title, value, subtitle, icon, color, footer, progress }: any) {
+function KpiCard({ title, value, subtitle, icon, color, footer, progress, className = "" }: any) {
   return (
-    <div className="bg-white border border-stone-200 rounded-[28px] lg:rounded-[32px] p-6 lg:p-8 shadow-sm group hover:border-primary/20 transition-all active:translate-y-[-2px]">
-      <div className="flex justify-between items-start mb-4 lg:mb-6">
-        <div className={`w-12 h-12 lg:w-14 lg:h-14 rounded-xl lg:rounded-2xl flex items-center justify-center ${color} group-hover:scale-110 transition-transform`}>
-          {icon}
-        </div>
-      </div>
+    <div className={`bg-white border border-stone-200 rounded-[28px] lg:rounded-[32px] p-6 lg:p-8 shadow-sm group hover:border-primary/20 transition-all active:translate-y-[-2px] flex flex-col justify-between ${className}`}>
       <div>
+        <div className="flex justify-between items-start mb-4 lg:mb-6">
+          <div className={`w-12 h-12 lg:w-14 lg:h-14 rounded-xl lg:rounded-2xl flex items-center justify-center ${color} group-hover:scale-110 transition-transform`}>
+            {icon}
+          </div>
+        </div>
         <div className="flex items-baseline gap-2 min-w-0">
           <span className="text-2xl lg:text-3xl font-black text-stone-900 tracking-tighter uppercase">{value}</span>
           <span className="text-[10px] lg:text-[11px] font-bold text-stone-400 uppercase tracking-widest leading-none shrink-0">{subtitle}</span>
         </div>
-        
+      </div>
+      
+      <div>
         {progress !== undefined && (
           <div className="h-1.5 w-full bg-stone-50 rounded-full mt-4 overflow-hidden">
             <motion.div 
@@ -495,9 +504,9 @@ function ActivityItem({ icon, text, time, color, bgColor }: any) {
   );
 }
 
-function InsightCard({ icon, text, color, action, onAction }: any) {
+function InsightCard({ icon, text, color, action, onAction, className = "" }: any) {
   return (
-    <div className="flex items-center gap-4 bg-white border border-stone-200 p-6 rounded-[28px] shadow-sm">
+    <div className={`flex items-center gap-4 bg-white border border-stone-200 p-6 rounded-[28px] shadow-sm ${className}`}>
       <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 ${color}`}>
         {icon}
       </div>
