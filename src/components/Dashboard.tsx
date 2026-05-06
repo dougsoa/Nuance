@@ -174,7 +174,7 @@ export default function Dashboard({
         </header>
 
         {/* KPIs Grid */}
-        <div className="flex overflow-x-auto snap-x snap-mandatory pb-4 -mx-6 px-6 items-stretch sm:mx-0 sm:px-0 sm:pb-0 sm:grid sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6 scrollbar-hide sm:custom-scrollbar">
+        <div className="flex overflow-x-auto snap-x snap-mandatory pb-4 -mx-6 px-6 items-stretch sm:mx-0 sm:px-0 sm:pb-0 sm:grid sm:grid-cols-2 xl:grid-cols-4 gap-4 lg:gap-6 scrollbar-hide sm:custom-scrollbar">
           <div className="min-w-[280px] sm:min-w-0 snap-center flex flex-col">
             <KpiCard 
               title="Tarefas de hoje"
@@ -344,7 +344,7 @@ export default function Dashboard({
              </div>
 
              <div className="bg-white border border-stone-200 rounded-[32px] p-6 shadow-sm overflow-hidden">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 divide-y md:divide-y-0 md:divide-x divide-stone-50">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-2 gap-x-12 divide-y md:divide-y-0 md:divide-x divide-stone-50">
                   {activities.length === 0 ? (
                     <div className="col-span-2 py-10 text-center text-stone-300">
                       <Clock size={40} className="mx-auto" strokeWidth={1} />
@@ -389,7 +389,7 @@ export default function Dashboard({
               <h3 className="text-xl font-bold text-stone-900 tracking-tight">Insights para você</h3>
             </div>
             
-            <div className="flex overflow-x-auto snap-x snap-mandatory pb-4 -mx-6 px-6 items-stretch sm:mx-0 sm:px-0 sm:pb-0 sm:grid sm:grid-cols-2 md:grid-cols-3 gap-6 scrollbar-hide sm:overflow-visible">
+            <div className="flex overflow-x-auto snap-x snap-mandatory pb-4 -mx-6 px-6 items-stretch sm:mx-0 sm:px-0 sm:pb-0 sm:grid sm:grid-cols-2 xl:grid-cols-3 gap-6 scrollbar-hide sm:overflow-visible">
               <div className="min-w-[280px] sm:min-w-0 snap-center flex flex-col">
                 <InsightCard 
                   icon={<TrendingUp className={taskProgress >= 100 ? "text-emerald-500" : "text-primary"} size={20} />}
@@ -442,6 +442,7 @@ export default function Dashboard({
               </div>
             </div>
           </div>
+
 
         </div>
       </div>
