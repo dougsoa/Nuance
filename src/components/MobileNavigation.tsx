@@ -51,7 +51,7 @@ export default function MobileNavigation({ activeView, setActiveView, onAction }
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setIsMenuOpen(false)}
-              className="fixed inset-0 bg-stone-900/60 backdrop-blur-md z-[110]"
+              className="fixed inset-0 bg-stone-500/10 backdrop-blur-sm z-[110]"
             />
             <motion.div
               initial={{ opacity: 0, y: 100, scale: 0.9 }}
@@ -90,7 +90,7 @@ export default function MobileNavigation({ activeView, setActiveView, onAction }
 
       {/* Main Bottom Bar */}
       <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[105] w-[95%] max-w-lg lg:hidden">
-        <div className="bg-stone-950/95 backdrop-blur-2xl rounded-[32px] p-2 shadow-[0_20px_50px_rgba(0,0,0,0.3)] border border-white/10 flex items-center justify-between relative">
+        <div className="bg-white/95 backdrop-blur-2xl rounded-[32px] p-2 shadow-[0_20px_40px_rgba(0,0,0,0.08)] border border-stone-200/60 flex items-center justify-between relative">
           
           {/* Nav Items - Left */}
           <div className="flex items-center justify-around flex-1 px-1">
@@ -100,14 +100,14 @@ export default function MobileNavigation({ activeView, setActiveView, onAction }
                 onClick={() => setActiveView(item.id as any)}
                 className={cn(
                   "flex flex-col items-center justify-center w-12 h-12 rounded-2xl transition-all relative",
-                  activeView === item.id ? "text-white" : "text-stone-500"
+                  activeView === item.id ? "text-primary" : "text-stone-400"
                 )}
               >
                 <item.icon size={22} strokeWidth={activeView === item.id ? 2.5 : 2} />
                 {activeView === item.id && (
                   <motion.div 
                     layoutId="activeTab"
-                    className="absolute inset-0 bg-white/10 rounded-2xl -z-10"
+                    className="absolute inset-0 bg-primary/5 rounded-2xl -z-10"
                   />
                 )}
               </button>
@@ -120,8 +120,8 @@ export default function MobileNavigation({ activeView, setActiveView, onAction }
               <button
                 onClick={() => setIsMenuOpen(!isMenuOpen)}
                 className={cn(
-                  "w-16 h-16 rounded-[24px] flex items-center justify-center shadow-[0_10px_30px_rgba(var(--color-primary),0.3)] transition-all active:scale-90 border-4 border-stone-950",
-                  isMenuOpen ? "bg-white text-stone-900 rotate-45" : "bg-primary text-white"
+                  "w-16 h-16 rounded-[24px] flex items-center justify-center shadow-xl transition-all active:scale-90 border-4 border-white",
+                  isMenuOpen ? "bg-stone-100 text-stone-900 rotate-45 shadow-none" : "bg-primary text-white shadow-primary/30"
                 )}
               >
                 <Plus size={32} strokeWidth={3} />
@@ -137,14 +137,14 @@ export default function MobileNavigation({ activeView, setActiveView, onAction }
                 onClick={() => setActiveView(item.id as any)}
                 className={cn(
                   "flex flex-col items-center justify-center w-12 h-12 rounded-2xl transition-all relative",
-                  activeView === item.id ? "text-white" : "text-stone-500"
+                  activeView === item.id ? "text-primary" : "text-stone-400"
                 )}
               >
                 <item.icon size={22} strokeWidth={activeView === item.id ? 2.5 : 2} />
                 {activeView === item.id && (
                   <motion.div 
                     layoutId="activeTab"
-                    className="absolute inset-0 bg-white/10 rounded-2xl -z-10"
+                    className="absolute inset-0 bg-primary/5 rounded-2xl -z-10"
                   />
                 )}
               </button>
