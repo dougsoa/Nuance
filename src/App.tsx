@@ -332,7 +332,9 @@ export default function App() {
               {user?.photoURL ? (
                 <img src={user.photoURL} alt="" referrerPolicy="no-referrer" />
               ) : (
-                <div className="w-full h-full flex items-center justify-center text-stone-400"><UserIcon size={18} /></div>
+                <div className="w-full h-full flex items-center justify-center text-primary font-black text-sm bg-primary/10 uppercase">
+                  {user?.displayName ? user.displayName.charAt(0) : (user?.email?.charAt(0) || 'U')}
+                </div>
               )}
             </div>
             <div className="flex-1 min-w-0">
@@ -360,7 +362,13 @@ export default function App() {
             <span className="font-black text-stone-900 tracking-tight">Nuance</span>
           </div>
           <div className="w-8 h-8 rounded-full border border-stone-200 bg-stone-100 flex items-center justify-center overflow-hidden">
-             {user?.photoURL ? <img src={user.photoURL} alt="" referrerPolicy="no-referrer" /> : <UserIcon size={14} className="text-stone-400" />}
+             {user?.photoURL ? (
+               <img src={user.photoURL} alt="" referrerPolicy="no-referrer" />
+             ) : (
+               <div className="w-full h-full flex items-center justify-center text-primary font-black text-xs bg-primary/10 uppercase">
+                 {user?.displayName ? user.displayName.charAt(0) : (user?.email?.charAt(0) || 'U')}
+               </div>
+             )}
           </div>
         </header>
 
