@@ -182,7 +182,6 @@ export default function Dashboard({
               subtitle="pendentes"
               icon={<ListTodo size={24} />}
               color="bg-primary/10 text-primary"
-              progress={taskProgress}
               className="h-full"
             />
           </div>
