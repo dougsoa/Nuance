@@ -174,36 +174,44 @@ export default function Dashboard({
         </header>
 
         {/* KPIs Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
-          <KpiCard 
-            title="Tarefas de hoje"
-            value={totalTasks - completedTasks}
-            subtitle="pendentes"
-            icon={<ListTodo size={24} />}
-            color="bg-primary/10 text-primary"
-            progress={taskProgress}
-          />
-          <KpiCard 
-            title="Notas registradas"
-            value={nonDailyNotes.length}
-            subtitle="notas"
-            icon={<StickyNote size={24} />}
-            color="bg-emerald-50 text-emerald-600"
-          />
-          <KpiCard 
-            title="Processos ativos"
-            value={processes.length}
-            subtitle={processes.length === 1 ? "processo" : "processos"}
-            icon={<GitBranch size={24} />}
-            color="bg-indigo-50 text-indigo-600"
-          />
-          <KpiCard 
-            title="Tarefas pendentes"
-            value={totalPendingAll}
-            subtitle={totalPendingAll === 1 ? "tarefa / subtarefa" : "tarefas / subtarefas"}
-            icon={<ListTodo size={24} />}
-            color="bg-amber-50 text-amber-600"
-          />
+        <div className="flex overflow-x-auto snap-x snap-mandatory pb-4 -mx-6 px-6 sm:mx-0 sm:px-0 sm:pb-0 sm:grid sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6 custom-scrollbar-hide sm:custom-scrollbar">
+          <div className="min-w-[280px] sm:min-w-0 snap-center">
+            <KpiCard 
+              title="Tarefas de hoje"
+              value={totalTasks - completedTasks}
+              subtitle="pendentes"
+              icon={<ListTodo size={24} />}
+              color="bg-primary/10 text-primary"
+              progress={taskProgress}
+            />
+          </div>
+          <div className="min-w-[280px] sm:min-w-0 snap-center">
+            <KpiCard 
+              title="Notas registradas"
+              value={nonDailyNotes.length}
+              subtitle="notas"
+              icon={<StickyNote size={24} />}
+              color="bg-emerald-50 text-emerald-600"
+            />
+          </div>
+          <div className="min-w-[280px] sm:min-w-0 snap-center">
+            <KpiCard 
+              title="Processos ativos"
+              value={processes.length}
+              subtitle={processes.length === 1 ? "processo" : "processos"}
+              icon={<GitBranch size={24} />}
+              color="bg-indigo-50 text-indigo-600"
+            />
+          </div>
+          <div className="min-w-[280px] sm:min-w-0 snap-center">
+            <KpiCard 
+              title="Tarefas pendentes"
+              value={totalPendingAll}
+              subtitle={totalPendingAll === 1 ? "tarefa / subtarefa" : "tarefas / subtarefas"}
+              icon={<ListTodo size={24} />}
+              color="bg-amber-50 text-amber-600"
+            />
+          </div>
         </div>
 
         {/* Main Grid Section */}
@@ -377,48 +385,54 @@ export default function Dashboard({
               <h3 className="text-xl font-bold text-stone-900 tracking-tight">Insights para você</h3>
             </div>
             
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <InsightCard 
-                icon={<TrendingUp className={taskProgress >= 100 ? "text-emerald-500" : "text-primary"} size={20} />}
-                text={taskProgress >= 100 
-                  ? "Incrível! Você concluiu todas as tarefas de hoje. Aproveite o tempo extra!" 
-                  : `Você concluiu ${taskProgress}% das tarefas de hoje. Mantenha o foco!`}
-                color={taskProgress >= 100 ? "bg-emerald-50" : "bg-primary/10"}
-              />
+            <div className="flex overflow-x-auto snap-x snap-mandatory pb-4 -mx-6 px-6 sm:mx-0 sm:px-0 sm:pb-0 sm:grid sm:grid-cols-2 md:grid-cols-3 gap-6 scrollbar-hide sm:overflow-visible">
+              <div className="min-w-[280px] sm:min-w-0 snap-center">
+                <InsightCard 
+                  icon={<TrendingUp className={taskProgress >= 100 ? "text-emerald-500" : "text-primary"} size={20} />}
+                  text={taskProgress >= 100 
+                    ? "Incrível! Você concluiu todas as tarefas de hoje. Aproveite o tempo extra!" 
+                    : `Você concluiu ${taskProgress}% das tarefas de hoje. Mantenha o foco!`}
+                  color={taskProgress >= 100 ? "bg-emerald-50" : "bg-primary/10"}
+                />
+              </div>
               
-              {(() => {
-                const lastUpdate = processes[0]?.updatedAt?.toDate() || processes[0]?.createdAt?.toDate() || new Date();
-                const daysDiff = Math.floor((new Date().getTime() - lastUpdate.getTime()) / (1000 * 60 * 60 * 24));
-                
-                return (
-                  <InsightCard 
-                    icon={<Calendar className={daysDiff > 2 ? "text-amber-500" : "text-indigo-500"} size={20} />}
-                    text={processes.length === 0 
-                      ? "Que tal mapear seu primeiro processo para otimizar sua rotina?" 
-                      : daysDiff === 0 
-                        ? "Seus processos estão atualizados. Bom trabalho!"
-                        : `Você não atualiza seus processos há ${daysDiff} ${daysDiff === 1 ? 'dia' : 'dias'}.`}
-                    color={daysDiff > 2 ? "bg-amber-50" : "bg-indigo-50"}
-                    action={processes.length === 0 ? "Mapear agora" : "Ver processos"}
-                    onAction={openProcesses}
-                  />
-                );
-              })()}
+              <div className="min-w-[280px] sm:min-w-0 snap-center">
+                {(() => {
+                  const lastUpdate = processes[0]?.updatedAt?.toDate() || processes[0]?.createdAt?.toDate() || new Date();
+                  const daysDiff = Math.floor((new Date().getTime() - lastUpdate.getTime()) / (1000 * 60 * 60 * 24));
+                  
+                  return (
+                    <InsightCard 
+                      icon={<Calendar className={daysDiff > 2 ? "text-amber-500" : "text-indigo-500"} size={20} />}
+                      text={processes.length === 0 
+                        ? "Que tal mapear seu primeiro processo para otimizar sua rotina?" 
+                        : daysDiff === 0 
+                          ? "Seus processos estão atualizados. Bom trabalho!"
+                          : `Você não atualiza seus processos há ${daysDiff} ${daysDiff === 1 ? 'dia' : 'dias'}.`}
+                      color={daysDiff > 2 ? "bg-amber-50" : "bg-indigo-50"}
+                      action={processes.length === 0 ? "Mapear agora" : "Ver processos"}
+                      onAction={openProcesses}
+                    />
+                  );
+                })()}
+              </div>
 
-              {(() => {
-                const notesWithoutTags = nonDailyNotes.filter(n => !n.tags || n.tags.length === 0).length;
-                return (
-                  <InsightCard 
-                    icon={<StickyNote className={notesWithoutTags > 0 ? "text-amber-500" : "text-emerald-500"} size={20} />}
-                    text={notesWithoutTags > 0 
-                      ? `Você tem ${notesWithoutTags} ${notesWithoutTags === 1 ? 'nota' : 'notas'} sem tags. Organize-as para facilitar a busca!` 
-                      : "Todas as suas notas estão devidamente categorizadas com tags. Ótima organização!"}
-                    color={notesWithoutTags > 0 ? "bg-amber-50" : "bg-emerald-50"}
-                    action={notesWithoutTags > 0 ? "Ver notas" : undefined}
-                    onAction={() => openNotes(null)}
-                  />
-                );
-              })()}
+              <div className="min-w-[280px] sm:min-w-0 snap-center">
+                {(() => {
+                  const notesWithoutTags = nonDailyNotes.filter(n => !n.tags || n.tags.length === 0).length;
+                  return (
+                    <InsightCard 
+                      icon={<StickyNote className={notesWithoutTags > 0 ? "text-amber-500" : "text-emerald-500"} size={20} />}
+                      text={notesWithoutTags > 0 
+                        ? `Você tem ${notesWithoutTags} ${notesWithoutTags === 1 ? 'nota' : 'notas'} sem tags. Organize-as para facilitar a busca!` 
+                        : "Todas as suas notas estão devidamente categorizadas com tags. Ótima organização!"}
+                      color={notesWithoutTags > 0 ? "bg-amber-50" : "bg-emerald-50"}
+                      action={notesWithoutTags > 0 ? "Ver notas" : undefined}
+                      onAction={() => openNotes(null)}
+                    />
+                  );
+                })()}
+              </div>
             </div>
           </div>
 
