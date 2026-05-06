@@ -134,8 +134,15 @@ export default function Dashboard({
     }
   };
 
+  const hasPendingSubtasks = (task: NoteTask): boolean => {
+    if (!task.subtasks || task.subtasks.length === 0) return false;
+    return task.subtasks.some(sub => !sub.completed || hasPendingSubtasks(sub));
+  };
+
   const renderTask = (task: NoteTask, depth: number = 0) => {
     const overdue = isOverdue(task);
+    const fullyCompleted = task.completed && !hasPendingSubtasks(task);
+    
     return (
       <React.Fragment key={task.id}>
         <div className={`flex items-center justify-between group ${depth > 0 ? 'ml-8 mt-4' : ''}`}>
@@ -147,7 +154,7 @@ export default function Dashboard({
               {task.completed ? <CheckCircle2 size={24} /> : overdue ? <Zap size={24} className="fill-red-500" /> : <Circle size={24} />}
             </button>
             <div>
-              <p className={`font-bold transition-all ${task.completed ? 'text-stone-400 line-through' : overdue ? 'text-red-600 underline decoration-red-500/30 underline-offset-4' : 'text-stone-800'}`}>
+              <p className={`font-bold transition-all ${fullyCompleted ? 'text-stone-400 line-through' : overdue ? 'text-red-600 underline decoration-red-500/30 underline-offset-4' : 'text-stone-800'}`}>
                 {task.text}
               </p>
               <div className="flex items-center gap-2">
