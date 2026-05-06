@@ -309,12 +309,12 @@ export default function Dashboard({
                           </div>
                           <div className="flex-1 min-w-0">
                             <h4 className="font-bold text-stone-900 truncate">{note.title}</h4>
-                            <p className="text-xs text-stone-500 line-clamp-1">
+                            <p className="text-xs text-stone-500 line-clamp-1 hidden sm:block">
                               {note.content || (note.tasks && note.tasks[0]?.text) || 'Sem conteúdo'}
                             </p>
                           </div>
                         </div>
-                        <div className="flex flex-col items-end gap-1 shrink-0 ml-4">
+                        <div className="hidden sm:flex flex-col items-end gap-1 shrink-0 ml-4">
                           <span className="text-[10px] font-bold text-stone-400 uppercase">
                             {note.createdAt?.toDate ? format(note.createdAt.toDate(), "eeee, HH:mm", { locale: ptBR }) : 'Recentemente'}
                           </span>
@@ -499,7 +499,7 @@ function ActivityItem({ icon, text, time, color, bgColor }: any) {
         </div>
         <p className="text-sm font-medium text-stone-700">{text}</p>
       </div>
-      <span className="text-[10px] font-bold text-stone-400 uppercase tracking-widest shrink-0 whitespace-nowrap ml-4">{time}</span>
+      <span className="text-[10px] font-bold text-stone-400 uppercase tracking-widest shrink-0 whitespace-nowrap ml-4 hidden sm:block">{time}</span>
     </div>
   );
 }
