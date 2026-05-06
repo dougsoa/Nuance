@@ -444,10 +444,10 @@ export default function NoteModal({ isOpen, onClose, onSave, onDelete, initialDa
           initial={{ opacity: 0, scale: 0.9, y: 20 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.9, y: 20 }}
-          className="relative w-full max-w-2xl bg-white rounded-[32px] shadow-2xl overflow-hidden flex flex-col max-h-[90vh]"
+          className="relative w-full max-w-2xl bg-white rounded-[28px] lg:rounded-[32px] shadow-2xl overflow-hidden flex flex-col max-h-[95vh] lg:max-h-[90vh]"
         >
-          <div className="flex-shrink-0 flex items-center justify-between px-8 py-6 border-b border-gray-100 bg-white">
-            <h2 className="text-xl font-bold tracking-tight text-gray-900">
+          <div className="flex-shrink-0 flex items-center justify-between px-6 lg:px-8 py-4 lg:py-6 border-b border-gray-100 bg-white">
+            <h2 className="text-lg lg:text-xl font-bold tracking-tight text-gray-900">
               {initialData ? 'Editar Anotação' : 'Nova Anotação'}
             </h2>
             <button 
@@ -458,14 +458,14 @@ export default function NoteModal({ isOpen, onClose, onSave, onDelete, initialDa
             </button>
           </div>
 
-          <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-8 space-y-6 scrollbar-hide">
-            <div className="flex items-center justify-between mb-2">
-              <div className="space-y-1 flex-1 mr-4">
+          <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-6 lg:p-8 space-y-6 scrollbar-hide">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-2">
+              <div className="space-y-1 flex-1">
                 <label className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Título</label>
                 <input 
                   type="text"
                   placeholder="Ex: Planejamento Diário"
-                  className="w-full text-2xl font-semibold outline-none placeholder:text-gray-200"
+                  className="w-full text-xl lg:text-2xl font-semibold outline-none placeholder:text-gray-200"
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
                   required
@@ -473,11 +473,11 @@ export default function NoteModal({ isOpen, onClose, onSave, onDelete, initialDa
               </div>
             <div className="flex items-center gap-2">
               {isDailyTask && (
-                <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-stone-50 border border-stone-100 mr-2">
+                <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-stone-50 border border-stone-100 mr-2">
                   <Calendar size={14} className="text-stone-400" />
                   <input 
                     type="date" 
-                    className="bg-transparent text-xs font-bold text-stone-600 outline-none"
+                    className="bg-transparent text-[10px] lg:text-xs font-bold text-stone-600 outline-none w-24 lg:w-auto"
                     value={scheduledDate}
                     onChange={(e) => setScheduledDate(e.target.value)}
                   />
@@ -486,7 +486,7 @@ export default function NoteModal({ isOpen, onClose, onSave, onDelete, initialDa
               <button
                 type="button"
                 onClick={() => setIsDailyTask(!isDailyTask)}
-                className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all border ${
+                className={`flex items-center gap-2 px-4 py-2 rounded-xl text-[10px] lg:text-xs font-bold transition-all border ${
                   isDailyTask 
                     ? 'bg-primary/10 border-primary text-primary shadow-sm shadow-primary/10' 
                     : 'bg-gray-50 border-gray-100 text-gray-400 hover:text-gray-600'
@@ -723,7 +723,7 @@ export default function NoteModal({ isOpen, onClose, onSave, onDelete, initialDa
             </div>
           </form>
 
-          <div className="flex-shrink-0 flex justify-between p-8 border-t border-gray-100 bg-gray-50/50">
+          <div className="flex-shrink-0 flex justify-between gap-4 p-6 lg:p-8 border-t border-gray-100 bg-gray-50/50">
             {initialData && initialData.id && onDelete ? (
               <button
                 type="button"
@@ -731,7 +731,7 @@ export default function NoteModal({ isOpen, onClose, onSave, onDelete, initialDa
                   onDelete(initialData.id);
                   onClose();
                 }}
-                className="flex items-center gap-2 px-6 py-3 rounded-2xl font-bold text-xs uppercase tracking-widest text-red-500 hover:bg-red-50 transition-all border border-transparent"
+                className="flex items-center justify-center gap-2 px-4 lg:px-6 py-3 rounded-2xl font-bold text-[10px] lg:text-xs uppercase tracking-widest text-red-500 hover:bg-red-50 transition-all border border-transparent"
               >
                 <Trash2 size={18} />
                 Excluir
@@ -740,9 +740,9 @@ export default function NoteModal({ isOpen, onClose, onSave, onDelete, initialDa
             <button 
               onClick={handleSubmit}
               disabled={loading}
-              className="bg-primary text-white px-8 py-3 rounded-2xl font-bold hover:opacity-90 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 shadow-lg shadow-primary/20"
+              className="bg-primary text-white px-6 lg:px-8 py-3 rounded-2xl font-bold text-xs lg:text-sm hover:opacity-90 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-lg shadow-primary/20 flex-1 sm:flex-none"
             >
-              {loading ? <Loader2 className="animate-spin" size={18} /> : (initialData ? 'Atualizar' : 'Salvar Anotação')}
+              {loading ? <Loader2 className="animate-spin" size={18} /> : (initialData ? 'Atualizar' : 'Salvar')}
             </button>
           </div>
         </motion.div>

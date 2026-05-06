@@ -83,15 +83,15 @@ export default function ProcessModal({ isOpen, onClose, onSave, onDelete, initia
             initial={{ opacity: 0, scale: 0.95, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
-            className="relative bg-white w-full max-w-2xl rounded-[40px] shadow-2xl overflow-hidden flex flex-col max-h-[90vh]"
+            className="relative bg-white w-full max-w-2xl rounded-[28px] lg:rounded-[40px] shadow-2xl overflow-hidden flex flex-col max-h-[95vh] lg:max-h-[90vh]"
           >
-            <div className="p-8 border-b border-stone-100 flex justify-between items-center bg-white sticky top-0 z-10">
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-primary/10 rounded-2xl flex items-center justify-center text-primary">
-                  <GitBranch size={24} />
+            <div className="p-6 lg:p-8 border-b border-stone-100 flex justify-between items-center bg-white sticky top-0 z-10">
+              <div className="flex items-center gap-3 lg:gap-4 flex-1 min-w-0">
+                <div className="w-10 h-10 lg:w-12 lg:h-12 bg-primary/10 rounded-xl lg:rounded-2xl flex items-center justify-center text-primary shrink-0">
+                  <GitBranch className="w-5 h-5 lg:w-6 lg:h-6" />
                 </div>
-                <div>
-                  <h2 className="text-xl font-black text-stone-900 uppercase tracking-tight">
+                <div className="min-w-0">
+                  <h2 className="text-lg lg:text-xl font-black text-stone-900 uppercase tracking-tight truncate">
                     {initialData ? 'Editar Processo' : 'Novo Processo'}
                   </h2>
                   <p className="text-[10px] font-bold text-stone-400 uppercase tracking-widest">Fluxo de Trabalho</p>
@@ -105,15 +105,15 @@ export default function ProcessModal({ isOpen, onClose, onSave, onDelete, initia
               </button>
             </div>
 
-            <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-8 space-y-8 custom-scrollbar">
+            <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-6 lg:p-8 space-y-8 custom-scrollbar">
               <div className="space-y-6">
                  <div className="space-y-2">
                   <label className="text-[10px] font-bold uppercase tracking-widest text-stone-400 ml-1">Título do Processo</label>
                   <input 
                     autoFocus
                     type="text"
-                    placeholder="Ex: Onboarding de Novos Colaboradores"
-                    className="w-full text-2xl font-black text-stone-900 placeholder:text-stone-200 outline-none border-b-2 border-transparent focus:border-primary/20 transition-all pb-2"
+                    placeholder="Ex: Onboarding"
+                    className="w-full text-xl lg:text-2xl font-black text-stone-900 placeholder:text-stone-200 outline-none border-b-2 border-transparent focus:border-primary/20 transition-all pb-2"
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
                   />
@@ -200,7 +200,7 @@ export default function ProcessModal({ isOpen, onClose, onSave, onDelete, initia
               </div>
             </form>
 
-            <div className="p-8 border-t border-stone-100 bg-stone-50/50 flex justify-between items-center">
+            <div className="p-6 lg:p-8 border-t border-stone-100 bg-stone-50/50 flex flex-col sm:flex-row justify-between items-center gap-4">
                {initialData && initialData.id && onDelete ? (
                 <button
                   type="button"
@@ -208,25 +208,25 @@ export default function ProcessModal({ isOpen, onClose, onSave, onDelete, initia
                     onDelete(initialData.id);
                     onClose();
                   }}
-                  className="flex items-center gap-2 px-6 py-3 rounded-2xl font-bold text-xs uppercase tracking-widest text-red-500 hover:bg-red-50 transition-all"
+                  className="w-full sm:w-auto flex items-center justify-center gap-2 px-6 py-3 rounded-2xl font-bold text-xs uppercase tracking-widest text-red-500 hover:bg-red-50 transition-all order-2 sm:order-1"
                 >
                   <Trash2 size={18} />
                   Excluir
                 </button>
-              ) : <div />}
+              ) : <div className="hidden sm:block" />}
 
-              <div className="flex gap-4">
+              <div className="flex gap-4 w-full sm:w-auto order-1 sm:order-2">
                 <button 
                   type="button"
                   onClick={onClose}
-                  className="px-8 py-4 rounded-2xl font-bold text-xs uppercase tracking-widest text-stone-500 hover:bg-stone-100 transition-all"
+                  className="flex-1 sm:flex-none px-6 lg:px-8 py-3 lg:py-4 rounded-2xl font-bold text-[10px] lg:text-xs uppercase tracking-widest text-stone-500 hover:bg-stone-100 transition-all"
                 >
                   Cancelar
                 </button>
                 <button 
                   onClick={handleSubmit}
                   disabled={loading || !title.trim()}
-                  className="bg-primary text-white px-10 py-4 rounded-2xl font-bold text-xs uppercase tracking-widest shadow-xl shadow-primary/20 hover:opacity-95 active:scale-95 transition-all disabled:opacity-50"
+                  className="flex-1 sm:flex-none bg-primary text-white px-8 lg:px-10 py-3 lg:py-4 rounded-2xl font-bold text-[10px] lg:text-xs uppercase tracking-widest shadow-xl shadow-primary/20 hover:opacity-95 active:scale-95 transition-all disabled:opacity-50"
                 >
                   {loading ? 'Salvando...' : 'Salvar Fluxo'}
                 </button>

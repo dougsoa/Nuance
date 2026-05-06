@@ -158,13 +158,13 @@ export default function Dashboard({
   const greeting = hour >= 5 && hour < 12 ? "Bom dia" : hour >= 12 && hour < 18 ? "Boa tarde" : "Boa noite";
 
   return (
-    <main className="flex-1 overflow-y-auto bg-[#F8FAFC] custom-scrollbar p-8 lg:p-12">
-      <div className="max-w-7xl mx-auto space-y-10 pb-20">
+    <main className="flex-1 overflow-y-auto bg-[#F8FAFC] custom-scrollbar p-6 lg:p-12">
+      <div className="max-w-7xl mx-auto space-y-8 lg:space-y-10 pb-20">
         
         {/* Header */}
         <header className="flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div>
-            <h2 className="text-4xl font-black text-stone-900 tracking-tight">
+            <h2 className="text-3xl lg:text-4xl font-extrabold lg:font-black text-stone-900 tracking-tight leading-tight">
               {greeting}, {user?.displayName?.split(' ')[0] || 'Douglas'}!
             </h2>
             <p className="text-stone-500 font-medium mt-1">Aqui está o que está acontecendo hoje.</p>
@@ -174,7 +174,7 @@ export default function Dashboard({
         </header>
 
         {/* KPIs Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
           <KpiCard 
             title="Tarefas de hoje"
             value={totalTasks - completedTasks}
@@ -224,7 +224,7 @@ export default function Dashboard({
                 </button>
              </div>
              
-             <div className="bg-white border border-stone-200 rounded-[32px] p-8 shadow-sm flex-1 flex flex-col">
+             <div className="bg-white border border-stone-200 rounded-[28px] lg:rounded-[32px] p-6 lg:p-8 shadow-sm flex-1 flex flex-col">
                 {dailyTasks.length === 0 ? (
                   <div className="flex-1 flex flex-col items-center justify-center text-stone-300 py-10">
                     <ListTodo size={40} strokeWidth={1} />
@@ -260,7 +260,7 @@ export default function Dashboard({
                 </button>
              </div>
 
-             <div className="bg-white border border-stone-200 rounded-[32px] p-6 shadow-sm divide-y divide-stone-50 flex-1 flex flex-col justify-between">
+             <div className="bg-white border border-stone-200 rounded-[28px] lg:rounded-[32px] p-4 lg:p-6 shadow-sm divide-y divide-stone-50 flex-1 flex flex-col justify-between">
                 <div>
                   {recentNotes.length === 0 ? (
                     <div className="py-20 text-center text-stone-300">
@@ -272,24 +272,24 @@ export default function Dashboard({
                       <div 
                         key={note.id} 
                         onClick={() => onEditNote(note)}
-                        className="p-4 hover:bg-stone-50 rounded-[24px] transition-all cursor-pointer flex items-center justify-between group"
+                        className="p-3 lg:p-4 hover:bg-stone-50 rounded-[20px] lg:rounded-[24px] transition-all cursor-pointer flex items-center justify-between group"
                       >
-                        <div className="flex items-center gap-4">
-                          <div className="w-12 h-12 rounded-2xl bg-stone-50 flex items-center justify-center text-stone-400 group-hover:bg-primary/10 group-hover:text-primary transition-all">
+                        <div className="flex items-center gap-3 lg:gap-4 flex-1 min-w-0">
+                          <div className="w-10 h-10 lg:w-12 lg:h-12 rounded-xl lg:rounded-2xl bg-stone-50 flex items-center justify-center text-stone-400 group-hover:bg-primary/10 group-hover:text-primary transition-all shrink-0">
                             <StickyNote size={20} />
                           </div>
-                          <div>
-                            <h4 className="font-bold text-stone-900">{note.title}</h4>
-                            <p className="text-xs text-stone-500 line-clamp-1 max-w-md">
+                          <div className="flex-1 min-w-0">
+                            <h4 className="font-bold text-stone-900 truncate">{note.title}</h4>
+                            <p className="text-xs text-stone-500 line-clamp-1">
                               {note.content || (note.tasks && note.tasks[0]?.text) || 'Sem conteúdo'}
                             </p>
                           </div>
                         </div>
-                        <div className="flex flex-col items-end gap-1">
+                        <div className="flex flex-col items-end gap-1 shrink-0 ml-4">
                           <span className="text-[10px] font-bold text-stone-400 uppercase">
                             {note.createdAt?.toDate ? format(note.createdAt.toDate(), "eeee, HH:mm", { locale: ptBR }) : 'Recentemente'}
                           </span>
-                          <ArrowRight size={14} className="text-stone-300 opacity-0 group-hover:opacity-100 transition-all translate-x-2 group-hover:translate-x-0" />
+                          <ArrowRight size={14} className="text-stone-300 opacity-0 group-hover:opacity-100 transition-all translate-x-2 group-hover:translate-x-0 hidden sm:block" />
                         </div>
                       </div>
                     ))
@@ -418,16 +418,16 @@ export default function Dashboard({
 
 function KpiCard({ title, value, subtitle, icon, color, footer, progress }: any) {
   return (
-    <div className="bg-white border border-stone-200 rounded-[32px] p-8 shadow-sm group hover:border-primary/20 transition-all">
-      <div className="flex justify-between items-start mb-6">
-        <div className={`w-14 h-14 rounded-2xl flex items-center justify-center ${color} group-hover:scale-110 transition-transform`}>
+    <div className="bg-white border border-stone-200 rounded-[28px] lg:rounded-[32px] p-6 lg:p-8 shadow-sm group hover:border-primary/20 transition-all">
+      <div className="flex justify-between items-start mb-4 lg:mb-6">
+        <div className={`w-12 h-12 lg:w-14 lg:h-14 rounded-xl lg:rounded-2xl flex items-center justify-center ${color} group-hover:scale-110 transition-transform`}>
           {icon}
         </div>
       </div>
       <div>
-        <div className="flex items-center gap-2 flex-wrap min-w-0">
-          <span className="text-3xl font-black text-stone-900 tracking-tighter uppercase">{value}</span>
-          <span className="text-[11px] font-bold text-stone-400 uppercase tracking-widest leading-none mt-1">{subtitle}</span>
+        <div className="flex items-baseline gap-2 min-w-0">
+          <span className="text-2xl lg:text-3xl font-black text-stone-900 tracking-tighter uppercase">{value}</span>
+          <span className="text-[10px] lg:text-[11px] font-bold text-stone-400 uppercase tracking-widest leading-none shrink-0">{subtitle}</span>
         </div>
         
         {progress !== undefined && (
