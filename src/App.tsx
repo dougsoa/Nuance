@@ -19,7 +19,7 @@ import {
 } from 'firebase/firestore';
 import { auth, db } from './lib/firebase';
 import { Note, OperationType, Process, NoteTask } from './types';
-import { handleFirestoreError } from './lib/utils';
+import { handleFirestoreError, cleanData } from './lib/utils';
 import NoteCard from './components/NoteCard';
 import NoteModal from './components/NoteModal';
 import ProcessModal from './components/ProcessModal';
@@ -33,28 +33,6 @@ import { StickyNote, Filter, LayoutGrid, User as UserIcon, LogOut, ListTodo, Cal
 import { Toaster, toast } from 'sonner';
 import { DashboardSkeleton } from './components/DashboardSkeleton';
 import ProcessModule from './components/ProcessModule';
-
-// Helper to remove undefined fields from objects and arrays before sending to Firestore
-const cleanData = (obj: any): any => {
-  if (Array.isArray(obj)) {
-    return obj.map(v => cleanData(v));
-  }
-  
-  // Check for a plain object to avoid recursing into Firestore FieldValues or other special objects
-  const isPlainObject = obj !== null && typeof obj === 'object' && (obj.constructor === Object || obj.constructor === undefined);
-  
-  if (isPlainObject) {
-    const newObj: any = {};
-    Object.keys(obj).forEach(key => {
-      if (obj[key] !== undefined) {
-        newObj[key] = cleanData(obj[key]);
-      }
-    });
-    return newObj;
-  }
-  
-  return obj;
-};
 
 export default function App() {
   const [user, setUser] = useState<User | null>(null);
@@ -209,25 +187,51 @@ export default function App() {
     const note = notes.find(n => n.id === noteId);
     if (!note || !note.tasks) return;
 
-    const toggleInList = (list: NoteTask[]): NoteTask[] => {
-      return list.map(t => {
-        if (t.id === taskId) {
-          return { ...t, completed: !t.completed };
+    const processToggle = (tasks: NoteTask[]): { updatedTasks: NoteTask[], found: boolean } => {
+      let foundInScope = false;
+      const newList = tasks.map(task => {
+        let updatedTask = { ...task };
+
+        if (task.id === taskId) {
+          foundInScope = true;
+          const targetStatus = !task.completed;
+          updatedTask.completed = targetStatus;
+          
+          // If toggling a parent, propagate state to all subtasks
+          if (updatedTask.subtasks && updatedTask.subtasks.length > 0) {
+            const setStatusRecursive = (subs: NoteTask[]): NoteTask[] => 
+              subs.map(s => ({
+                ...s,
+                completed: targetStatus,
+                subtasks: s.subtasks ? setStatusRecursive(s.subtasks) : undefined
+              }));
+            updatedTask.subtasks = setStatusRecursive(updatedTask.subtasks);
+          }
+        } else if (task.subtasks && task.subtasks.length > 0) {
+          const result = processToggle(task.subtasks);
+          if (result.found) {
+            foundInScope = true;
+            updatedTask.subtasks = result.updatedTasks;
+            
+            // Auto-check parent based on children: if all subtasks are done, mark parent as done
+            const allSubsDone = updatedTask.subtasks.every(s => s.completed);
+            updatedTask.completed = allSubsDone;
+          }
         }
-        if (t.subtasks) {
-          return { ...t, subtasks: toggleInList(t.subtasks) };
-        }
-        return t;
+
+        return updatedTask;
       });
+
+      return { updatedTasks: newList, found: foundInScope };
     };
 
-    const newTasks = toggleInList(note.tasks);
+    const { updatedTasks } = processToggle(note.tasks);
     try {
       const noteRef = doc(db, 'notes', noteId);
-      await updateDoc(noteRef, { 
-        tasks: newTasks,
+      await updateDoc(noteRef, cleanData({ 
+        tasks: updatedTasks,
         updatedAt: serverTimestamp() 
-      });
+      }));
     } catch (error) {
       handleFirestoreError(error, OperationType.UPDATE, `notes/${noteId}`);
     }

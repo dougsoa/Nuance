@@ -13,7 +13,7 @@ import {
 } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { Process, OperationType } from '../types';
-import { handleFirestoreError } from '../lib/utils';
+import { handleFirestoreError, cleanData } from '../lib/utils';
 import { motion, AnimatePresence } from 'motion/react';
 import { GitBranch, Plus, Search, X, ChevronRight, CornerDownRight, Info } from 'lucide-react';
 import ProcessCard from './ProcessCard';
@@ -63,16 +63,17 @@ export default function ProcessModule({ userId, initialSelectedProcessId }: Proc
   }, [userId]);
 
   const handleSaveProcess = async (data: Partial<Process>) => {
+    const cleanedData = cleanData(data);
     try {
       if (editingProcess && editingProcess.id) {
         const ref = doc(db, 'processes', editingProcess.id);
         await updateDoc(ref, {
-          ...data,
+          ...cleanedData,
           updatedAt: serverTimestamp(),
         });
       } else {
         await addDoc(collection(db, 'processes'), {
-          ...data,
+          ...cleanedData,
           userId,
           createdAt: serverTimestamp(),
           updatedAt: serverTimestamp(),
