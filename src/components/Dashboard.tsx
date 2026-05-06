@@ -309,7 +309,7 @@ export default function Dashboard({
                           </div>
                           <div className="flex-1 min-w-0">
                             <h4 className="font-bold text-stone-900 truncate">{note.title}</h4>
-                            <p className="text-xs text-stone-500 line-clamp-1 hidden sm:block">
+                            <p className="text-[11px] text-stone-400 truncate hidden sm:block mt-0.5">
                               {note.content || (note.tasks && note.tasks[0]?.text) || 'Sem conteúdo'}
                             </p>
                           </div>
@@ -457,36 +457,35 @@ export default function Dashboard({
 
 function KpiCard({ title, value, subtitle, icon, color, footer, progress, className = "" }: any) {
   return (
-    <div className={`bg-white border border-stone-200 rounded-[28px] lg:rounded-[32px] p-6 lg:p-8 shadow-sm group hover:border-primary/20 transition-all active:translate-y-[-2px] flex flex-col justify-between ${className}`}>
-      <div>
-        <div className="flex justify-between items-start mb-4 lg:mb-6">
-          <div className={`w-12 h-12 lg:w-14 lg:h-14 rounded-xl lg:rounded-2xl flex items-center justify-center ${color} group-hover:scale-110 transition-transform`}>
-            {icon}
-          </div>
+    <div className={`bg-white border border-stone-200 rounded-[28px] lg:rounded-[32px] p-5 lg:p-6 shadow-sm group hover:border-primary/20 transition-all active:translate-y-[-2px] flex flex-col justify-between ${className}`}>
+      <div className="flex items-center gap-4">
+        <div className={`w-12 h-12 lg:w-14 lg:h-14 rounded-xl lg:rounded-2xl flex items-center justify-center shrink-0 ${color} group-hover:scale-105 transition-transform`}>
+          {icon}
         </div>
-        <div className="flex items-baseline gap-2 min-w-0">
-          <span className="text-2xl lg:text-3xl font-black text-stone-900 tracking-tighter uppercase">{value}</span>
-          <span className="text-[10px] lg:text-[11px] font-bold text-stone-400 uppercase tracking-widest leading-none shrink-0">{subtitle}</span>
+        <div className="flex-1 min-w-0">
+          <p className="text-[10px] lg:text-[11px] font-black text-stone-400 uppercase tracking-widest truncate mb-0.5">{title}</p>
+          <div className="flex items-baseline gap-1.5 flex-wrap">
+            <span className="text-xl lg:text-2xl font-black text-stone-900 tracking-tighter uppercase leading-none">{value}</span>
+            <span className="text-[9px] lg:text-[10px] font-bold text-stone-400 uppercase tracking-widest leading-none">{subtitle}</span>
+          </div>
         </div>
       </div>
       
-      <div>
-        {progress !== undefined && (
-          <div className="h-1.5 w-full bg-stone-50 rounded-full mt-4 overflow-hidden">
-            <motion.div 
-               initial={{ width: 0 }}
-               animate={{ width: `${progress}%` }}
-               className="h-full bg-primary"
-            />
-          </div>
-        )}
+      {progress !== undefined && (
+        <div className="h-1.5 w-full bg-stone-50 rounded-full mt-4 overflow-hidden">
+          <motion.div 
+             initial={{ width: 0 }}
+             animate={{ width: `${progress}%` }}
+             className="h-full bg-primary"
+          />
+        </div>
+      )}
 
-        {footer && (
-          <p className="mt-6 text-[10px] font-bold text-stone-400 uppercase tracking-widest border-t border-stone-50 pt-4">
-            {footer}
-          </p>
-        )}
-      </div>
+      {footer && (
+        <p className="mt-4 text-[10px] font-bold text-stone-400 uppercase tracking-widest border-t border-stone-50 pt-3">
+          {footer}
+        </p>
+      )}
     </div>
   );
 }
