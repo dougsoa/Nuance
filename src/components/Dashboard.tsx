@@ -174,7 +174,7 @@ export default function Dashboard({
         </header>
 
         {/* KPIs Grid */}
-        <div className="flex overflow-x-auto snap-x snap-mandatory pb-4 -mx-6 px-6 items-stretch sm:mx-0 sm:px-0 sm:pb-0 sm:grid sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6 custom-scrollbar-hide sm:custom-scrollbar">
+        <div className="flex overflow-x-auto snap-x snap-mandatory pb-4 -mx-6 px-6 items-stretch sm:mx-0 sm:px-0 sm:pb-0 sm:grid sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6 scrollbar-hide sm:custom-scrollbar">
           <div className="min-w-[280px] sm:min-w-0 snap-center flex flex-col">
             <KpiCard 
               title="Tarefas de hoje"
