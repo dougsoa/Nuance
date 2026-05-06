@@ -83,6 +83,7 @@ export default function App() {
       setNotes(notesData);
       setIsDataLoading(false);
     }, (error) => {
+      setIsDataLoading(false); // Stop loading even on error to show empty state/error info
       handleFirestoreError(error, OperationType.LIST, 'notes');
     });
 
@@ -421,7 +422,7 @@ export default function App() {
             </div>
             <div className="flex-1 min-w-0">
                <p className="text-[11px] font-bold text-stone-900 truncate uppercase tracking-tight">
-                 {user?.displayName?.split(' ')[0] || 'Usuário'}
+                 {user?.displayName ? user.displayName.split(' ')[0] : 'Usuário'}
                </p>
                <p className="text-[9px] text-stone-500 truncate">
                  {user?.email}

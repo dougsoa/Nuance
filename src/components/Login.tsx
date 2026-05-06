@@ -82,36 +82,36 @@ export default function Login() {
   if (isForgotPassword) {
     return (
       <div className="min-h-screen bg-natural-bg flex items-center justify-center p-6 font-sans">
-        <div className="relative w-full max-w-md">
-          <div className="absolute -inset-1 bg-gradient-to-r from-primary/20 to-primary/10 rounded-[40px] blur-xl transition duration-1000"></div>
-          
-          <motion.div 
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="relative bg-white rounded-[40px] border border-stone-200 p-10 shadow-2xl shadow-stone-200/50"
+        <div className="relative w-full max-w-md mx-auto">
+        <div className="absolute -inset-1 bg-gradient-to-r from-primary/20 to-primary/10 rounded-[40px] blur-xl transition duration-1000 hidden sm:block"></div>
+        
+        <motion.div 
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="relative bg-white rounded-[32px] sm:rounded-[40px] border border-stone-200 p-6 sm:p-10 shadow-2xl shadow-stone-200/50"
+        >
+          <button 
+            onClick={() => {
+              setIsForgotPassword(false);
+              setError('');
+              setSuccessMessage('');
+            }}
+            className="absolute left-6 top-6 sm:left-8 sm:top-8 text-stone-400 hover:text-stone-900 transition-colors"
           >
-            <button 
-              onClick={() => {
-                setIsForgotPassword(false);
-                setError('');
-                setSuccessMessage('');
-              }}
-              className="absolute left-8 top-8 text-stone-400 hover:text-stone-900 transition-colors"
-            >
-              <ArrowLeft size={20} />
-            </button>
+            <ArrowLeft size={20} />
+          </button>
 
-            <div className="text-center mb-8">
-              <div className="w-16 h-16 bg-stone-100 rounded-2xl flex items-center justify-center text-primary mx-auto mb-6">
-                <KeyRound size={32} />
-              </div>
-              <h2 className="text-2xl font-black text-stone-900 tracking-tight uppercase">
-                Recuperar Senha
-              </h2>
-              <p className="text-stone-500 text-xs mt-2 font-medium uppercase tracking-widest max-w-[200px] mx-auto">
-                Enviaremos um link para o seu e-mail
-              </p>
+          <div className="text-center mb-6 sm:mb-8 mt-4 sm:mt-0">
+            <div className="w-14 h-14 sm:w-16 sm:h-16 bg-stone-100 rounded-2xl flex items-center justify-center text-primary mx-auto mb-4 sm:mb-6">
+              <KeyRound size={28} className="sm:w-8 sm:h-8" />
             </div>
+            <h2 className="text-xl sm:text-2xl font-black text-stone-900 tracking-tight uppercase">
+              Recuperar Senha
+            </h2>
+            <p className="text-stone-500 text-[10px] sm:text-xs mt-2 font-medium uppercase tracking-widest max-w-[200px] mx-auto">
+              Enviaremos um link para o seu e-mail
+            </p>
+          </div>
 
             <form onSubmit={handleResetPassword} className="space-y-6">
               <div className="space-y-1">
@@ -166,23 +166,23 @@ export default function Login() {
   }
 
   return (
-    <div className="min-h-screen bg-natural-bg flex items-center justify-center p-6 font-sans">
-      <div className="relative w-full max-w-md">
-        <div className="absolute -inset-1 bg-gradient-to-r from-primary/20 to-primary/10 rounded-[40px] blur-xl transition duration-1000"></div>
+    <div className="min-h-screen bg-natural-bg flex items-center justify-center p-4 sm:p-6 font-sans">
+      <div className="relative w-full max-w-md mx-auto">
+        <div className="absolute -inset-1 bg-gradient-to-r from-primary/20 to-primary/10 rounded-[40px] blur-xl transition duration-1000 hidden sm:block"></div>
         
         <motion.div 
           initial={{ opacity: 0, y: 40 }}
           animate={{ opacity: 1, y: 0 }}
-          className="relative bg-white rounded-[40px] border border-stone-200 p-10 shadow-2xl shadow-stone-200/50"
+          className="relative bg-white rounded-[32px] sm:rounded-[40px] border border-stone-200 p-8 sm:p-10 shadow-2xl shadow-stone-200/50"
         >
-          <div className="text-center mb-10">
-            <div className="w-16 h-16 bg-primary rounded-2xl flex items-center justify-center text-white font-black text-4xl shadow-xl shadow-primary/20 mx-auto mb-6">
+          <div className="text-center mb-8 sm:mb-10">
+            <div className="w-14 h-14 sm:w-16 sm:h-16 bg-primary rounded-2xl flex items-center justify-center text-white font-black text-3xl sm:text-4xl shadow-xl shadow-primary/20 mx-auto mb-4 sm:mb-6">
               N
             </div>
-            <h1 className="text-4xl font-black text-stone-900 tracking-tighter uppercase leading-none">
+            <h1 className="text-3xl sm:text-4xl font-black text-stone-900 tracking-tighter uppercase leading-none">
               Nuance
             </h1>
-            <p className="text-stone-500 text-sm mt-3 font-medium uppercase tracking-widest">
+            <p className="text-stone-500 text-xs sm:text-sm mt-3 font-medium uppercase tracking-widest">
               {isLogin ? 'Bem-vindo de volta' : 'Crie sua conta'}
             </p>
           </div>

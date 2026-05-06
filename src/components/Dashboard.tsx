@@ -123,9 +123,9 @@ export default function Dashboard({
         <div className="flex items-center gap-4">
           <button 
              onClick={() => dailyTasksNote && onToggleTask(dailyTasksNote.id, task.id)}
-             className={`shrink-0 transition-all ${task.completed ? 'text-emerald-500' : 'text-stone-300 hover:text-stone-400'}`}
+             className={`shrink-0 transition-all active:scale-90 ${task.completed ? 'text-emerald-500' : 'text-stone-300 hover:text-stone-400'}`}
           >
-            {task.completed ? <CheckCircle2 size={22} /> : <Circle size={22} />}
+            {task.completed ? <CheckCircle2 size={24} /> : <Circle size={24} />}
           </button>
           <div>
             <p className={`font-bold transition-all ${task.completed ? 'text-stone-400 line-through' : 'text-stone-800'}`}>
@@ -165,7 +165,7 @@ export default function Dashboard({
         <header className="flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div>
             <h2 className="text-3xl lg:text-4xl font-extrabold lg:font-black text-stone-900 tracking-tight leading-tight">
-              {greeting}, {user?.displayName?.split(' ')[0] || 'Douglas'}!
+              {greeting}, {user?.displayName ? user.displayName.split(' ')[0] : 'Douglas'}!
             </h2>
             <p className="text-stone-500 font-medium mt-1">Aqui está o que está acontecendo hoje.</p>
           </div>
@@ -435,7 +435,7 @@ export default function Dashboard({
 
 function KpiCard({ title, value, subtitle, icon, color, footer, progress }: any) {
   return (
-    <div className="bg-white border border-stone-200 rounded-[28px] lg:rounded-[32px] p-6 lg:p-8 shadow-sm group hover:border-primary/20 transition-all">
+    <div className="bg-white border border-stone-200 rounded-[28px] lg:rounded-[32px] p-6 lg:p-8 shadow-sm group hover:border-primary/20 transition-all active:translate-y-[-2px]">
       <div className="flex justify-between items-start mb-4 lg:mb-6">
         <div className={`w-12 h-12 lg:w-14 lg:h-14 rounded-xl lg:rounded-2xl flex items-center justify-center ${color} group-hover:scale-110 transition-transform`}>
           {icon}
@@ -469,7 +469,7 @@ function KpiCard({ title, value, subtitle, icon, color, footer, progress }: any)
 
 function ActivityItem({ icon, text, time, color, bgColor }: any) {
   return (
-    <div className="flex items-center justify-between py-4 border-b border-stone-50 last:border-0 hover:bg-stone-50 px-4 -mx-4 transition-all">
+    <div className="flex items-center justify-between py-4 border-b border-stone-50 last:border-0 hover:bg-stone-50 active:bg-stone-100 px-4 -mx-4 transition-all rounded-xl">
       <div className="flex items-center gap-4">
         <div className={`w-8 h-8 rounded-xl ${bgColor} ${color} flex items-center justify-center shrink-0`}>
           {icon}

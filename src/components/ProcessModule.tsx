@@ -119,12 +119,14 @@ export default function ProcessModule({ userId }: ProcessModuleProps) {
                 <p className="text-[10px] font-bold text-stone-400 uppercase tracking-widest">Visualizando Fluxo</p>
               </div>
             </div>
-            <div className="hidden sm:flex items-center gap-3">
+            <div className="flex items-center gap-2 sm:gap-3">
                <button 
                 onClick={() => openEditModal(selectedProcess)}
-                className="px-6 py-3 bg-stone-50 text-stone-600 rounded-2xl font-bold text-xs uppercase tracking-widest hover:bg-stone-100 transition-all border border-stone-100"
+                className="p-2 sm:px-6 sm:py-3 bg-stone-50 text-stone-600 rounded-xl sm:rounded-2xl font-bold text-xs uppercase tracking-widest hover:bg-stone-100 transition-all border border-stone-100 group active:scale-95"
+                title="Editar Fluxo"
               >
-                Editar Fluxo
+                <Plus size={16} className="sm:hidden" />
+                <span className="hidden sm:inline">Editar Fluxo</span>
               </button>
             </div>
           </header>

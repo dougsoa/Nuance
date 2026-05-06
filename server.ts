@@ -1,9 +1,38 @@
-import express from "express";
-import path from "path";
+import express from 'express';
+import path from 'path';
 import { Resend } from 'resend';
 import dotenv from 'dotenv';
+import { initializeApp, getApps, getApp, App as FirebaseAdminApp } from 'firebase-admin/app';
+import { getAuth } from 'firebase-admin/auth';
+import { readFileSync } from 'fs';
 
 dotenv.config();
+
+// Read Firebase config
+let firebaseConfig: any = null;
+try {
+  const firebaseConfigPath = path.resolve(process.cwd(), 'firebase-applet-config.json');
+  firebaseConfig = JSON.parse(readFileSync(firebaseConfigPath, 'utf-8'));
+} catch (e) {
+  console.error("Failed to read firebase-applet-config.json", e);
+}
+
+// Initialize Firebase Admin safely
+let firebaseAdminApp: FirebaseAdminApp | null = null;
+if (firebaseConfig) {
+  try {
+    if (getApps().length === 0) {
+      firebaseAdminApp = initializeApp({
+        projectId: firebaseConfig.projectId,
+      });
+      console.log("Firebase Admin initialized successfully.");
+    } else {
+      firebaseAdminApp = getApp();
+    }
+  } catch (error) {
+    console.error("CRITICAL: Error initializing Firebase Admin:", error);
+  }
+}
 
 const __dirname = path.resolve();
 
@@ -13,11 +42,44 @@ async function startServer() {
 
   app.use(express.json());
 
+  // Health check route
+  app.get("/api/health", (req, res) => {
+    res.json({ status: "ok", firebaseAdmin: !!firebaseAdminApp });
+  });
+
   const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
 
-  // API Route for Welcome Email
-  app.post("/api/welcome-email", async (req, res) => {
+  // Middleware to verify Firebase ID Token
+  const verifyToken = async (req: any, res: any, next: any) => {
+    const authHeader = req.headers.authorization;
+    if (!authHeader?.startsWith('Bearer ')) {
+      return res.status(401).json({ error: 'Unauthorized: No token provided' });
+    }
+
+    const idToken = authHeader.split('Bearer ')[1];
+    try {
+      if (!firebaseAdminApp) {
+         return res.status(500).json({ error: 'Firebase Admin not initialized' });
+      }
+      const decodedToken = await getAuth().verifyIdToken(idToken);
+      req.user = decodedToken;
+      next();
+    } catch (error) {
+      console.error('Error verifying Firebase token:', error);
+      res.status(401).json({ error: 'Unauthorized: Invalid token' });
+    }
+  };
+
+  // API Route for Welcome Email - Now PROTECTED
+  app.post("/api/welcome-email", verifyToken, async (req: any, res: any) => {
     const { email, name } = req.body;
+    
+    // Safety check: ensure the email being targeted matches the authenticated user's email
+    // or at least that they ARE authenticated. 
+    // Usually, welcome email is sent right after login/signup.
+    if (req.user.email !== email) {
+      return res.status(403).json({ error: "Forbidden: You can only send welcome emails to yourself." });
+    }
 
     if (!email) {
       return res.status(400).json({ error: "Email is required" });
