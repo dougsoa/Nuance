@@ -436,221 +436,215 @@ export default function NoteModal({ isOpen, onClose, onSave, onDelete, initialDa
 
   return (
     <AnimatePresence>
-      <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+      <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-0 sm:p-4">
         <motion.div 
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           onClick={onClose}
-          className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+          className="absolute inset-0 bg-stone-900/40 backdrop-blur-sm"
         />
         
         <motion.div 
-          initial={{ opacity: 0, scale: 0.9, y: 20 }}
-          animate={{ opacity: 1, scale: 1, y: 0 }}
-          exit={{ opacity: 0, scale: 0.9, y: 20 }}
-          className="relative w-full max-w-2xl bg-white rounded-[28px] lg:rounded-[32px] shadow-2xl overflow-hidden flex flex-col max-h-[95vh] lg:max-h-[90vh]"
+          initial={{ y: '100%' }}
+          animate={{ y: 0 }}
+          exit={{ y: '100%' }}
+          transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+          className="relative w-full max-w-2xl bg-white rounded-t-[32px] sm:rounded-[32px] shadow-2xl overflow-hidden flex flex-col h-[92vh] sm:h-auto sm:max-h-[85vh]"
         >
-          <div className="flex-shrink-0 flex items-center justify-between px-6 lg:px-8 py-4 lg:py-6 border-b border-gray-100 bg-white">
-            <h2 className="text-lg lg:text-xl font-bold tracking-tight text-gray-900">
-              {initialData ? 'Editar Anotação' : 'Nova Anotação'}
-            </h2>
+          {/* Mobile Handle */}
+          <div className="w-12 h-1.5 bg-gray-200 rounded-full mx-auto mt-3 mb-1 sm:hidden shrink-0" />
+
+          <div className="flex-shrink-0 flex items-center justify-between px-6 sm:px-8 py-4 sm:py-6 border-b border-gray-100 bg-white">
+            <div>
+              <h2 className="text-xl font-bold tracking-tight text-gray-900 leading-none">
+                {initialData ? 'Editar' : 'Criar'}
+              </h2>
+              <p className="text-xs text-gray-400 font-medium mt-1 uppercase tracking-wider">
+                {isDailyTask ? 'Lista de Tarefas' : 'Anotação Geral'}
+              </p>
+            </div>
             <button 
               onClick={onClose}
-              className="p-2 hover:bg-gray-100 rounded-full transition-colors text-gray-400 hover:text-black"
+              className="p-3 bg-gray-50 hover:bg-gray-100 rounded-2xl transition-all text-gray-400 hover:text-black active:scale-95"
             >
               <X size={20} />
             </button>
           </div>
 
-          <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-6 lg:p-8 space-y-6 scrollbar-hide">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-2">
-              <div className="space-y-1 flex-1">
-                <label className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Título</label>
-                <input 
-                  type="text"
-                  placeholder="Ex: Planejamento Diário"
-                  className="w-full text-xl lg:text-2xl font-semibold outline-none placeholder:text-gray-200"
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value)}
-                  required
-                />
-              </div>
-            <div className="flex items-center gap-2">
-              {isDailyTask && (
-                <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-stone-50 border border-stone-100 mr-2">
-                  <Calendar size={14} className="text-stone-400" />
-                  <input 
-                    type="date" 
-                    className="bg-transparent text-[10px] lg:text-xs font-bold text-stone-600 outline-none w-24 lg:w-auto"
-                    value={scheduledDate}
-                    onChange={(e) => setScheduledDate(e.target.value)}
-                  />
-                </div>
-              )}
-              <button
-                type="button"
-                onClick={() => setIsDailyTask(!isDailyTask)}
-                className={`flex items-center gap-2 px-4 py-2 rounded-xl text-[10px] lg:text-xs font-bold transition-all border ${
-                  isDailyTask 
-                    ? 'bg-primary/10 border-primary text-primary shadow-sm shadow-primary/10' 
-                    : 'bg-gray-50 border-gray-100 text-gray-400 hover:text-gray-600'
-                }`}
-              >
-                <ListTodo size={14} />
-                Tarefa
-              </button>
-            </div>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {!isDailyTask && (
+          <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-6 sm:p-8 space-y-8 scroll-smooth scrollbar-hide">
+            <div className="space-y-6">
+              <div className="space-y-4">
                 <div className="space-y-1">
-                  <label className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Categoria</label>
+                  <label className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 ml-1">Título do registro</label>
                   <input 
                     type="text"
-                    placeholder="Ex: Trabalho"
-                    className="w-full bg-gray-50 rounded-xl px-4 py-2 outline-none focus:ring-2 focus:ring-black/5 transition-all text-sm"
-                    value={category}
-                    onChange={(e) => setCategory(e.target.value)}
+                    placeholder="O que vamos registrar hoje?"
+                    className="w-full text-2xl sm:text-3xl font-bold outline-none placeholder:text-gray-200 bg-transparent py-1 border-b-2 border-transparent focus:border-stone-100 transition-all"
+                    value={title}
+                    onChange={(e) => setTitle(e.target.value)}
+                    required
                   />
                 </div>
-              )}
-              <div className={`space-y-1 ${isDailyTask ? 'col-span-2' : ''}`}>
-                <label className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Adicionar Tags</label>
-                <div className="relative">
-                  <input 
-                    type="text"
-                    placeholder="Pressione Enter"
-                    className="w-full bg-gray-50 rounded-xl px-4 py-2 outline-none focus:ring-2 focus:ring-black/5 transition-all pr-12 text-sm"
-                    value={tagInput}
-                    onChange={(e) => setTagInput(e.target.value)}
-                    onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddTag())}
-                  />
-                  <button 
+
+                <div className="flex flex-wrap items-center gap-3">
+                  <button
                     type="button"
-                    onClick={handleAddTag}
-                    className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-gray-400 hover:text-black"
+                    onClick={() => setIsDailyTask(!isDailyTask)}
+                    className={`flex items-center gap-2 px-5 py-3 rounded-2xl text-[11px] font-bold transition-all border-2 ${
+                      isDailyTask 
+                        ? 'bg-primary/10 border-primary shadow-lg shadow-primary/10 text-primary' 
+                        : 'bg-white border-gray-100 text-gray-400 hover:border-gray-200 active:bg-gray-50'
+                    }`}
                   >
-                    <Plus size={16} />
+                    <ListTodo size={16} />
+                    {isDailyTask ? 'Modo Tarefa: Ativo' : 'Definir como Tarefa'}
                   </button>
+
+                  {isDailyTask && (
+                    <div className="flex items-center gap-3 px-4 py-3 rounded-2xl bg-stone-50 border border-stone-100 shadow-inner">
+                      <Calendar size={16} className="text-stone-400" />
+                      <input 
+                        type="date" 
+                        className="bg-transparent text-[11px] font-bold text-stone-600 outline-none w-auto"
+                        value={scheduledDate}
+                        onChange={(e) => setScheduledDate(e.target.value)}
+                      />
+                    </div>
+                  )}
                 </div>
               </div>
-            </div>
 
-            {tags.length > 0 && (
-              <div className="flex flex-wrap gap-2">
-                {tags.map(tag => (
-                  <span key={tag} className="flex items-center gap-1 px-3 py-1 bg-gray-100 rounded-full text-[10px] text-gray-600 font-bold uppercase tracking-wider">
-                    {tag}
-                    <button type="button" onClick={() => removeTag(tag)} className="hover:text-red-500 transition-colors">
-                      <X size={12} />
-                    </button>
-                  </span>
-                ))}
-              </div>
-            )}
+              {!isDailyTask && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 ml-1">Categoria</label>
+                    <input 
+                      type="text"
+                      placeholder="Trabalho, Pessoal..."
+                      className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-5 py-3.5 outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary/20 transition-all text-sm font-medium"
+                      value={category}
+                      onChange={(e) => setCategory(e.target.value)}
+                    />
+                  </div>
 
-            {isDailyTask && (
-              <div className="space-y-4 pt-4 border-t border-gray-100">
-                <div className="space-y-1">
-                  <div className="flex items-center justify-between">
-                    <label className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Lista de Tarefas</label>
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 ml-1">Tags (Organização)</label>
+                    <div className="relative">
+                      <input 
+                        type="text"
+                        placeholder="Adicionar marcadores..."
+                        className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-5 py-3.5 outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary/20 transition-all pr-14 text-sm font-medium"
+                        value={tagInput}
+                        onChange={(e) => setTagInput(e.target.value)}
+                        onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddTag())}
+                      />
+                      <button 
+                        type="button"
+                        onClick={handleAddTag}
+                        className="absolute right-2 top-1/2 -translate-y-1/2 p-2 bg-white rounded-xl shadow-sm text-gray-400 hover:text-primary active:scale-90 transition-all"
+                      >
+                        <Plus size={20} />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {tags.length > 0 && !isDailyTask && (
+                <div className="flex flex-wrap gap-2 px-1">
+                  {tags.map(tag => (
+                    <span key={tag} className="flex items-center gap-2 px-4 py-2 bg-stone-100 rounded-xl text-[10px] text-stone-600 font-black uppercase tracking-widest border border-stone-200/50">
+                      {tag}
+                      <button type="button" onClick={() => removeTag(tag)} className="p-0.5 hover:bg-stone-200 rounded-md transition-colors">
+                        <X size={12} />
+                      </button>
+                    </span>
+                  ))}
+                </div>
+              )}
+
+              {isDailyTask && (
+                <div className="space-y-6 pt-4 border-t border-gray-100">
+                  <div className="flex items-center justify-between px-1">
+                    <label className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">Lista de Tarefas</label>
                     <button 
                       type="button"
                       onClick={() => setIsImporting(!isImporting)}
-                      className="text-[10px] font-bold text-primary uppercase tracking-widest hover:underline"
+                      className="text-[10px] font-black text-primary uppercase tracking-widest bg-primary/5 px-3 py-1.5 rounded-lg active:scale-95 transition-all"
                     >
-                      {isImporting ? 'Cancelar Importação' : 'Importar de Notas'}
+                      {isImporting ? 'Cancelar' : 'Importar Nota'}
                     </button>
                   </div>
 
                   {isImporting ? (
-                    <div className="bg-gray-50 rounded-2xl p-4 border border-primary/20 space-y-4">
+                    <div className="bg-gray-50 rounded-3xl p-5 border-2 border-dashed border-gray-200 space-y-4">
+                      {/* View logic for dynamic import remains similar but styled for mobile touch */}
                       {!previewNote ? (
                         <>
-                          <div className="flex items-center justify-between mb-2">
-                             <div className="flex flex-col">
-                              <span className="text-[10px] font-bold text-gray-400 uppercase">
-                                {importParentId ? 'Importar como subtarefa' : 'Importar como tarefa'}
-                              </span>
-                            </div>
-                            <button 
-                              type="button"
-                              onClick={() => {
-                                setIsImporting(false);
-                                setImportParentId(null);
-                              }}
-                              className="text-stone-400 hover:text-stone-600"
-                            >
-                              <X size={16} />
-                            </button>
-                          </div>
                           <div className="relative">
-                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
+                            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
                             <input 
                               type="text"
-                              placeholder="Pesquisar notas para importar..."
-                              className="w-full bg-white rounded-xl pl-10 pr-4 py-2 text-sm outline-none border border-gray-100 focus:border-primary/30 transition-all"
+                              placeholder="Pesquisar notas..."
+                              className="w-full bg-white rounded-2xl pl-12 pr-5 py-3.5 text-sm font-medium outline-none border border-gray-100 shadow-sm focus:border-primary/30 transition-all"
                               value={importSearch}
                               onChange={(e) => setImportSearch(e.target.value)}
                             />
                           </div>
-                          <div className="max-h-48 overflow-y-auto space-y-1 pr-1 custom-scrollbar">
+                          <div className="max-h-60 overflow-y-auto space-y-2 pr-1 custom-scrollbar">
                             {filteredImportNotes.map(note => (
                               <button
                                 key={note.id}
                                 type="button"
                                 onClick={() => handleSelectNoteForImport(note)}
-                                className="w-full flex items-center justify-between p-2 rounded-lg hover:bg-white text-left group transition-all"
+                                className="w-full flex items-center justify-between p-4 rounded-2xl bg-white border border-gray-100 hover:border-primary/20 hover:shadow-md text-left group transition-all active:scale-[0.98]"
                               >
-                                <span className="text-sm font-medium text-gray-700 truncate">{note.title}</span>
-                                <ArrowRight size={14} className="text-primary opacity-0 group-hover:opacity-100 transition-all" />
+                                <div>
+                                  <span className="text-sm font-bold text-gray-900 block">{note.title}</span>
+                                  <span className="text-[10px] text-gray-400 uppercase font-bold tracking-wider">{note.category || 'Sem categoria'}</span>
+                                </div>
+                                <ArrowRight size={18} className="text-primary opacity-0 group-hover:opacity-100 transition-all" />
                               </button>
                             ))}
-                            {filteredImportNotes.length === 0 && (
-                              <p className="text-center py-4 text-xs text-gray-400 font-medium italic">Nenhuma nota disponível</p>
-                            )}
                           </div>
                         </>
                       ) : (
-                        <div className="space-y-4">
-                          <div className="flex items-center justify-between">
-                            <div className="flex flex-col">
-                              <span className="text-[10px] font-bold text-gray-400 uppercase">
-                                {importParentId ? 'Importando subtarefas de' : 'Importando tarefas de'}
-                              </span>
+                        <div className="space-y-5">
+                          <div className="flex items-center justify-between p-3 bg-white rounded-2xl shadow-sm border border-gray-100">
+                            <div>
+                              <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest block">Extraindo de:</span>
                               <span className="text-sm font-bold text-gray-900">{previewNote.title}</span>
                             </div>
                             <button 
                               type="button"
                               onClick={() => setPreviewNote(null)}
-                              className="text-[10px] font-bold text-primary uppercase"
+                              className="text-[10px] font-black text-primary uppercase bg-gray-50 p-2 rounded-xl"
                             >
                               Voltar
                             </button>
                           </div>
                           
-                          <div className="max-h-48 overflow-y-auto space-y-2 pr-1 custom-scrollbar">
+                          <div className="max-h-60 overflow-y-auto space-y-2 pr-1 custom-scrollbar">
                             {previewNote.content.split('\n').filter(l => l.trim()).map((line, i) => (
                               <button
                                 key={i}
                                 type="button"
                                 onClick={() => toggleLineSelection(line.trim())}
-                                className={`w-full flex items-center gap-3 p-2.5 rounded-xl text-left transition-all ${
+                                className={`w-full flex items-center gap-4 p-4 rounded-2xl text-left transition-all border-2 ${
                                   selectedLines.includes(line.trim()) 
-                                    ? 'bg-primary/5 border border-primary/20' 
-                                    : 'bg-white border border-transparent hover:border-gray-200'
+                                    ? 'bg-primary/5 border-primary/40 shadow-inner' 
+                                    : 'bg-white border-transparent hover:border-gray-100 shadow-sm'
                                 }`}
                               >
-                                <div className={`w-5 h-5 rounded-md border flex items-center justify-center transition-all ${
+                                <div className={`shrink-0 w-6 h-6 rounded-lg border-2 flex items-center justify-center transition-all ${
                                   selectedLines.includes(line.trim())
-                                    ? 'bg-primary border-primary text-white'
+                                    ? 'bg-primary border-primary text-white scale-110 shadow-lg shadow-primary/20'
                                     : 'bg-gray-50 border-gray-200 text-transparent'
                                 }`}>
-                                  <Plus size={14} />
+                                  <Plus size={16} strokeWidth={3} />
                                 </div>
-                                <span className="text-sm text-gray-700 leading-tight">{line}</span>
+                                <span className="text-sm font-medium text-gray-700 leading-tight">{line}</span>
                               </button>
                             ))}
                           </div>
@@ -659,9 +653,9 @@ export default function NoteModal({ isOpen, onClose, onSave, onDelete, initialDa
                             type="button"
                             onClick={handleConfirmImport}
                             disabled={selectedLines.length === 0}
-                            className="w-full bg-primary text-white py-3 rounded-xl font-bold text-xs uppercase tracking-widest disabled:opacity-50 transition-all shadow-md active:scale-95"
+                            className="w-full bg-primary text-white py-4 rounded-2xl font-black text-[11px] uppercase tracking-[0.2em] shadow-xl shadow-primary/20 active:scale-95 transition-all disabled:opacity-30"
                           >
-                            Adicionar {selectedLines.length} Subtarefa(s)
+                            Importar {selectedLines.length} Itens
                           </button>
                         </div>
                       )}
@@ -670,88 +664,106 @@ export default function NoteModal({ isOpen, onClose, onSave, onDelete, initialDa
                     <div className="relative">
                       <input 
                         type="text"
-                        placeholder="Adicione uma tarefa..."
-                        className="w-full bg-gray-50 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-black/5 transition-all pr-12 text-sm"
+                        placeholder="Adicionar nova tarefa..."
+                        className="w-full bg-stone-50 border border-stone-100 rounded-2xl px-6 py-4 outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary/20 transition-all pr-32 text-sm font-medium shadow-inner"
                         value={newTaskText}
                         onChange={(e) => setNewTaskText(e.target.value)}
                         onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddTask())}
                       />
-                      <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1">
+                      <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-2">
                         <button 
                           type="button"
                           onClick={() => handleStartImport(null)}
-                          className="text-[10px] font-bold text-primary uppercase tracking-widest hover:underline px-2"
+                          className="text-[10px] font-black text-gray-400 uppercase tracking-widest hover:text-primary px-2 transition-colors hidden sm:block"
                         >
                           Importar
                         </button>
                         <button 
                           type="button"
                           onClick={handleAddTask}
-                          className="bg-primary text-white p-1.5 rounded-lg hover:opacity-90 shadow-sm"
+                          className="bg-primary text-white p-2.5 rounded-xl hover:opacity-90 shadow-lg shadow-primary/20 active:scale-90 transition-all"
                         >
-                          <Plus size={16} />
+                          <Plus size={20} />
                         </button>
                       </div>
                     </div>
                   )}
-                </div>
 
-                <div className="space-y-2">
-                  <AnimatePresence mode="popLayout">
-                    {tasks.map(task => (
-                      <TaskItem 
-                        key={task.id} 
-                        task={task} 
-                        onToggle={toggleTask} 
-                        onRemove={removeTask} 
-                        onAddSubtask={addSubtask}
-                        onImport={handleStartImport}
-                        onUpdateTask={updateTask}
-                      />
-                    ))}
-                  </AnimatePresence>
+                  <div className="space-y-3 pb-4">
+                    <AnimatePresence mode="popLayout">
+                      {tasks.map(task => (
+                        <TaskItem 
+                          key={task.id} 
+                          task={task} 
+                          onToggle={toggleTask} 
+                          onRemove={removeTask} 
+                          onAddSubtask={addSubtask}
+                          onImport={handleStartImport}
+                          onUpdateTask={updateTask}
+                        />
+                      ))}
+                    </AnimatePresence>
+                    {tasks.length === 0 && !isImporting && (
+                      <div className="py-12 flex flex-col items-center justify-center bg-gray-50 border-2 border-dashed border-gray-100 rounded-[32px]">
+                        <div className="p-4 bg-white rounded-2xl shadow-sm text-gray-200 mb-3">
+                          <ListTodo size={32} />
+                        </div>
+                        <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">Nenhuma tarefa adicionada</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              <div className="space-y-2">
+                <label className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 ml-1">
+                  {isDailyTask ? 'Notas e Observações' : 'Conteúdo'}
+                </label>
+                <div className="bg-gray-50 border border-gray-100 rounded-[32px] p-2 focus-within:ring-4 focus-within:ring-primary/5 transition-all shadow-inner">
+                  <textarea 
+                    placeholder="Escreva livremente aqui..."
+                    className="w-full h-48 bg-transparent px-4 py-4 outline-none resize-none font-sans text-base leading-relaxed placeholder:text-gray-300"
+                    value={content}
+                    onChange={(e) => setContent(e.target.value)}
+                    required={!isDailyTask}
+                  />
                 </div>
               </div>
-            )}
-
-            <div className="space-y-1">
-              <label className="text-[10px] font-bold uppercase tracking-widest text-gray-400">
-                {isDailyTask ? 'Observações Adicionais' : 'Conteúdo (Markdown)'}
-              </label>
-              <textarea 
-                placeholder="Escreva sua anotação aqui..."
-                className="w-full h-48 bg-gray-50 rounded-2xl px-4 py-4 outline-none focus:ring-2 focus:ring-black/5 transition-all resize-none font-sans text-sm leading-relaxed"
-                value={content}
-                onChange={(e) => setContent(e.target.value)}
-                required={!isDailyTask}
-              />
             </div>
           </form>
 
-          <div className="flex-shrink-0 flex justify-between gap-4 p-6 lg:p-8 border-t border-gray-100 bg-gray-50/50">
+          <div className="flex-shrink-0 flex sm:items-center justify-between gap-4 p-6 sm:p-8 border-t border-gray-100 bg-white shadow-2xl safe-bottom">
             {initialData && initialData.id && onDelete ? (
               <button
                 type="button"
                 onClick={() => {
-                  onDelete(initialData.id);
+                  onDelete(initialData.id!);
                   onClose();
                 }}
-                className="flex items-center justify-center gap-2 px-4 lg:px-6 py-3 rounded-2xl font-bold text-[10px] lg:text-xs uppercase tracking-widest text-red-500 hover:bg-red-50 transition-all border border-transparent"
+                className="flex items-center justify-center p-4 rounded-2xl text-red-500 bg-red-50 hover:bg-red-100 active:scale-95 transition-all border border-transparent sm:px-6 sm:text-[10px] sm:font-black sm:uppercase sm:tracking-widest"
               >
-                <Trash2 size={18} />
-                Excluir
+                <Trash2 size={24} className="sm:hidden" />
+                <span className="hidden sm:inline">Excluir Registro</span>
               </button>
             ) : <div />}
+            
             <button 
               onClick={handleSubmit}
               disabled={loading}
-              className="bg-primary text-white px-6 lg:px-8 py-3 rounded-2xl font-bold text-xs lg:text-sm hover:opacity-90 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-lg shadow-primary/20 flex-1 sm:flex-none"
+              className="flex-1 sm:flex-none sm:min-w-[160px] bg-primary text-white p-4 sm:py-4 sm:px-10 rounded-2xl font-black text-sm uppercase tracking-widest shadow-xl shadow-primary/20 hover:opacity-90 active:scale-[0.98] transition-all disabled:opacity-50 flex items-center justify-center gap-3"
             >
-              {loading ? <Loader2 className="animate-spin" size={18} /> : (initialData ? 'Atualizar' : 'Salvar')}
+              {loading ? (
+                <Loader2 className="animate-spin" size={20} />
+              ) : (
+                <>
+                  <span>{initialData ? 'Atualizar' : 'Salvar Registro'}</span>
+                </>
+              )}
             </button>
           </div>
         </motion.div>
       </div>
     </AnimatePresence>
   );
+
 }

@@ -1,11 +1,11 @@
 import express from 'express';
-import path from 'path';
+import path from 'node:path';
 import { Resend } from 'resend';
 import dotenv from 'dotenv';
 import { initializeApp, getApps, getApp, App as FirebaseAdminApp } from 'firebase-admin/app';
 import { getAuth } from 'firebase-admin/auth';
-import { readFileSync, existsSync } from 'fs';
-import { fileURLToPath } from 'url';
+import { readFileSync, existsSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -283,21 +283,36 @@ async function startServer() {
     });
     app.use(vite.middlewares);
   } else {
-    // Check if we are running from root or from a distribution folder
-    const distPath = existsSync(path.join(__dirname, 'dist')) 
-      ? path.join(__dirname, 'dist') 
-      : __dirname;
+    // In production, serving from the same folder as server.js
+    const distPath = existsSync(path.join(__dirname, 'index.html')) 
+      ? __dirname 
+      : path.join(__dirname, 'dist');
       
     console.log(`Serving static files from: ${distPath}`);
+    if (!existsSync(path.join(distPath, 'index.html'))) {
+      console.warn(`WARNING: index.html not found in ${distPath}`);
+    }
+
     app.use(express.static(distPath));
     app.get('*', (req, res) => {
-      res.sendFile(path.join(distPath, 'index.html'));
+      const indexPath = path.join(distPath, 'index.html');
+      if (existsSync(indexPath)) {
+        res.sendFile(indexPath);
+      } else {
+        res.status(404).send('Not Found - Application build missing index.html');
+      }
     });
   }
 
   app.listen(PORT, "0.0.0.0", () => {
     console.log(`Server running on http://localhost:${PORT}`);
+  }).on('error', (err) => {
+    console.error('CRITICAL: Server failed to start:', err);
+    process.exit(1);
   });
 }
 
-startServer();
+startServer().catch(err => {
+  console.error("CRITICAL: Failed to start server:", err);
+  process.exit(1);
+});

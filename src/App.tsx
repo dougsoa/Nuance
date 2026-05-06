@@ -17,10 +17,11 @@ import Dashboard from './components/Dashboard';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { AnimatePresence, motion } from 'motion/react';
-import { StickyNote, Filter, LayoutGrid, User as UserIcon, LogOut, ListTodo, CalendarDays, Plus, X, GitBranch, LayoutDashboard, Menu, CheckCircle2 } from 'lucide-react';
+import { StickyNote, Filter, LayoutGrid, User as UserIcon, LogOut, ListTodo, CalendarDays, Plus, X, GitBranch, LayoutDashboard, Menu, CheckCircle2, ChevronRight } from 'lucide-react';
 import { Toaster, toast } from 'sonner';
 import { DashboardSkeleton } from './components/DashboardSkeleton';
 import ProcessModule from './components/ProcessModule';
+import MobileNavigation from './components/MobileNavigation';
 
 export default function App() {
   const [user, setUser] = useState<User | null>(null);
@@ -39,6 +40,31 @@ export default function App() {
   const [isGlobalProcessModalOpen, setIsGlobalProcessModalOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [selectedProcessIdFromDashboard, setSelectedProcessIdFromDashboard] = useState<string | null>(null);
+
+  const handleMobileNavChange = (view: string) => {
+    if (view === 'dashboard') {
+      setActiveView('dashboard');
+    } else if (view === 'notes') {
+      setSelectedCategory(null);
+      setActiveView('notes');
+    } else if (view === 'tasks') {
+      setSelectedCategory('Daily Tasks');
+      setActiveView('notes');
+    } else if (view === 'processes') {
+      setActiveView('processes');
+    }
+  };
+
+  const handleMobileAction = (type: 'note' | 'task' | 'process') => {
+    if (type === 'note') openCreateModal();
+    else if (type === 'task') openDailyTaskModal();
+    else if (type === 'process') setIsGlobalProcessModalOpen(true);
+  };
+
+  const currentMobileView = 
+    activeView === 'dashboard' ? 'dashboard' :
+    activeView === 'notes' && selectedCategory === 'Daily Tasks' ? 'tasks' :
+    activeView === 'notes' ? 'notes' : 'processes';
 
   // Auth Listener
   useEffect(() => {
@@ -385,15 +411,9 @@ export default function App() {
       </aside>
 
       {/* Main Content Container */}
-      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
+      <div className="flex-1 flex flex-col min-w-0 overflow-hidden relative">
         {/* Mobile Header Toolbar */}
-        <header className="lg:hidden flex items-center justify-between px-6 py-4 bg-white border-b border-stone-200 shrink-0">
-          <button 
-            onClick={() => setIsMobileMenuOpen(true)}
-            className="p-2 -ml-2 text-stone-600 hover:bg-stone-50 rounded-xl transition-all"
-          >
-            <Menu size={24} />
-          </button>
+        <header className="lg:hidden flex items-center justify-between px-6 py-4 bg-white/80 backdrop-blur-md border-b border-stone-200 shrink-0 sticky top-0 z-20">
           <div 
             onClick={() => setActiveView('dashboard')}
             className="flex items-center gap-2 cursor-pointer active:scale-95 transition-transform"
@@ -403,10 +423,27 @@ export default function App() {
             </div>
             <span className="font-bold text-stone-900 tracking-tight">Nuance</span>
           </div>
-          <div className="w-8" /> {/* Spacer */}
+          
+          <div className="flex items-center gap-3">
+            <button 
+              onClick={() => auth.signOut()}
+              className="p-2 text-stone-400 hover:text-red-500 active:bg-red-50 rounded-xl transition-all"
+              title="Sair"
+            >
+              <LogOut size={20} />
+            </button>
+            <div className="w-9 h-9 rounded-full bg-stone-100 flex items-center justify-center text-stone-400 overflow-hidden border border-stone-200 shadow-inner">
+              {user?.photoURL ? (
+                <img src={user.photoURL} alt="" referrerPolicy="no-referrer" />
+              ) : (
+                <UserIcon size={16} />
+              )}
+            </div>
+          </div>
         </header>
 
-        {activeView === 'dashboard' ? (
+        <div className="flex-1 overflow-hidden flex flex-col pb-24 lg:pb-0">
+          {activeView === 'dashboard' ? (
           isDataLoading ? (
             <DashboardSkeleton />
           ) : (
@@ -516,6 +553,13 @@ export default function App() {
           />
         )}
       </div>
+    </div>
+
+    <MobileNavigation 
+        activeView={currentMobileView as any}
+        setActiveView={handleMobileNavChange as any}
+        onAction={handleMobileAction}
+      />
 
       <NoteModal 
         isOpen={isModalOpen}
