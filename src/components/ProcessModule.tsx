@@ -22,18 +22,25 @@ import ConfirmModal from './ConfirmModal';
 
 interface ProcessModuleProps {
   userId: string;
+  initialSelectedProcessId?: string | null;
 }
 
-export default function ProcessModule({ userId }: ProcessModuleProps) {
+export default function ProcessModule({ userId, initialSelectedProcessId }: ProcessModuleProps) {
   const [processes, setProcesses] = useState<Process[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingProcess, setEditingProcess] = useState<Process | null>(null);
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
   const [processIdToDelete, setProcessIdToDelete] = useState<string | null>(null);
-  const [selectedProcessId, setSelectedProcessId] = useState<string | null>(null);
+  const [selectedProcessId, setSelectedProcessId] = useState<string | null>(initialSelectedProcessId || null);
 
   const selectedProcess = processes.find(p => p.id === selectedProcessId);
+
+  useEffect(() => {
+    if (initialSelectedProcessId) {
+      setSelectedProcessId(initialSelectedProcessId);
+    }
+  }, [initialSelectedProcessId]);
 
   useEffect(() => {
     const q = query(

@@ -65,12 +65,14 @@ export default function App() {
   const [activeView, setActiveView] = useState<'dashboard' | 'notes' | 'processes'>('dashboard');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingNote, setEditingNote] = useState<Note | null>(null);
+  const [editingProcess, setEditingProcess] = useState<Process | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
   const [noteIdToDelete, setNoteIdToDelete] = useState<string | null>(null);
   const [isGlobalProcessModalOpen, setIsGlobalProcessModalOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [selectedProcessIdFromDashboard, setSelectedProcessIdFromDashboard] = useState<string | null>(null);
 
   // Auth Listener
   useEffect(() => {
@@ -141,16 +143,36 @@ export default function App() {
   const handleSaveProcess = async (data: Partial<Process>) => {
     if (!user) return;
     try {
-      await addDoc(collection(db, 'processes'), cleanData({
-        ...data,
-        userId: user.uid,
-        createdAt: serverTimestamp(),
-        updatedAt: serverTimestamp(),
-      }));
-      toast.success('Processo criado com sucesso!');
+      const cleanedData = cleanData(data);
+      if (editingProcess && editingProcess.id) {
+        const processRef = doc(db, 'processes', editingProcess.id);
+        await updateDoc(processRef, {
+          ...cleanedData,
+          updatedAt: serverTimestamp(),
+        });
+        toast.success('Processo atualizado com sucesso!');
+      } else {
+        await addDoc(collection(db, 'processes'), {
+          ...cleanedData,
+          userId: user.uid,
+          createdAt: serverTimestamp(),
+          updatedAt: serverTimestamp(),
+        });
+        toast.success('Processo criado com sucesso!');
+      }
     } catch (error) {
       toast.error('Erro ao salvar processo.');
-      handleFirestoreError(error, OperationType.CREATE, 'processes');
+      handleFirestoreError(error, editingProcess ? OperationType.UPDATE : OperationType.CREATE, 'processes');
+    }
+  };
+
+  const handleDeleteProcess = async (id: string) => {
+    try {
+      await deleteDoc(doc(db, 'processes', id));
+      toast.success('Processo excluído!');
+    } catch (error) {
+      toast.error('Erro ao excluir processo.');
+      handleFirestoreError(error, OperationType.DELETE, `processes/${id}`);
     }
   };
 
@@ -268,6 +290,21 @@ export default function App() {
     setIsModalOpen(true);
   };
 
+  const handleActivityClick = (activity: any) => {
+    if (activity.type === 'note' || activity.type === 'task') {
+      const note = notes.find(n => n.id === activity.id);
+      if (note) {
+        openEditModal(note);
+      }
+    } else if (activity.type === 'process') {
+      const process = processes.find(p => p.id === activity.id);
+      if (process) {
+        setEditingProcess(process);
+        setIsGlobalProcessModalOpen(true);
+      }
+    }
+  };
+
   const filteredNotes = notes.filter(note => {
     const matchesSearch = note.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
                           note.content.toLowerCase().includes(searchTerm.toLowerCase());
@@ -319,8 +356,11 @@ export default function App() {
         ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}
       `}>
         <div className="flex items-center justify-between lg:justify-start gap-3 mb-10">
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 bg-primary rounded-xl flex items-center justify-center text-white font-black text-lg shadow-sm">
+          <div 
+            onClick={() => setActiveView('dashboard')}
+            className="flex items-center gap-3 cursor-pointer group"
+          >
+            <div className="w-9 h-9 bg-primary rounded-xl flex items-center justify-center text-white font-black text-lg shadow-sm group-hover:scale-105 transition-transform">
               N
             </div>
             <h1 className="text-xl font-bold text-stone-900 tracking-tight">Nuance</h1>
@@ -473,7 +513,10 @@ export default function App() {
           >
             <Menu size={24} />
           </button>
-          <div className="flex items-center gap-2">
+          <div 
+            onClick={() => setActiveView('dashboard')}
+            className="flex items-center gap-2 cursor-pointer active:scale-95 transition-transform"
+          >
             <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center text-white font-black text-sm shadow-sm">
               N
             </div>
@@ -495,11 +538,15 @@ export default function App() {
               onToggleTask={handleToggleTask}
               onCreateNote={openCreateModal}
               onCreateTask={openDailyTaskModal}
-              openProcesses={() => setActiveView('processes')}
+              openProcesses={() => {
+                setSelectedProcessIdFromDashboard(null);
+                setActiveView('processes');
+              }}
               openNotes={(cat) => {
                 setSelectedCategory(cat);
                 setActiveView('notes');
               }}
+              onActivityClick={handleActivityClick}
             />
           )
         ) : activeView === 'notes' ? (
@@ -584,6 +631,7 @@ export default function App() {
         ) : (
           <ProcessModule 
             userId={user.uid} 
+            initialSelectedProcessId={selectedProcessIdFromDashboard}
           />
         )}
       </div>
@@ -599,9 +647,13 @@ export default function App() {
 
       <ProcessModal 
         isOpen={isGlobalProcessModalOpen}
-        onClose={() => setIsGlobalProcessModalOpen(false)}
+        onClose={() => {
+          setIsGlobalProcessModalOpen(false);
+          setEditingProcess(null);
+        }}
         onSave={handleSaveProcess}
-        initialData={null}
+        onDelete={handleDeleteProcess}
+        initialData={editingProcess}
       />
 
       <ConfirmModal 

@@ -30,6 +30,7 @@ interface DashboardProps {
   onCreateTask: () => void;
   openProcesses: () => void;
   openNotes: (category: string | null) => void;
+  onActivityClick?: (activity: any) => void;
 }
 
 export default function Dashboard({ 
@@ -42,7 +43,8 @@ export default function Dashboard({
   onCreateNote,
   onCreateTask,
   openProcesses,
-  openNotes
+  openNotes,
+  onActivityClick
 }: DashboardProps) {
   const todayStr = format(new Date(), 'yyyy-MM-dd');
   const dailyTasksNote = notes.find(n => 
@@ -360,7 +362,6 @@ export default function Dashboard({
                   <Clock size={20} className="text-stone-400" />
                   <h3 className="text-xl font-bold text-stone-900 tracking-tight">Atividade recente</h3>
                 </div>
-                <button className="text-primary font-bold text-xs uppercase tracking-widest hover:underline flex items-center gap-1">Ver todas <ChevronRight size={14} /></button>
              </div>
 
              <div className="bg-white border border-stone-200 rounded-[32px] p-6 shadow-sm overflow-hidden">
@@ -381,6 +382,7 @@ export default function Dashboard({
                             time={format(activity.date, "eeee, HH:mm", { locale: ptBR })} 
                             color={activity.color} 
                             bgColor={activity.bgColor}
+                            onClick={() => onActivityClick?.(activity)}
                           />
                         ))}
                       </div>
@@ -393,6 +395,7 @@ export default function Dashboard({
                             time={format(activity.date, "eeee, HH:mm", { locale: ptBR })} 
                             color={activity.color} 
                             bgColor={activity.bgColor}
+                            onClick={() => onActivityClick?.(activity)}
                           />
                         ))}
                       </div>
@@ -510,9 +513,12 @@ function KpiCard({ title, value, subtitle, icon, color, footer, progress, classN
   );
 }
 
-function ActivityItem({ icon, text, time, color, bgColor }: any) {
+function ActivityItem({ icon, text, time, color, bgColor, onClick }: any) {
   return (
-    <div className="flex items-center justify-between py-4 border-b border-stone-50 last:border-0 hover:bg-stone-50 active:bg-stone-100 px-4 -mx-4 transition-all rounded-xl">
+    <div 
+      onClick={onClick}
+      className="flex items-center justify-between py-4 border-b border-stone-50 last:border-0 hover:bg-stone-50 active:bg-stone-100 px-4 -mx-4 transition-all rounded-xl cursor-pointer"
+    >
       <div className="flex items-center gap-4">
         <div className={`w-8 h-8 rounded-xl ${bgColor} ${color} flex items-center justify-center shrink-0`}>
           {icon}
