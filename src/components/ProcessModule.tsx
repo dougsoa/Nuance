@@ -152,7 +152,7 @@ export default function ProcessModule({ userId, initialSelectedProcessId }: Proc
         </div>
       ) : (
         <>
-          <header className="p-6 lg:p-10 pb-0 flex flex-col lg:flex-row lg:items-center justify-between gap-6 shrink-0">
+          <header className="p-6 lg:p-10 flex flex-col lg:flex-row lg:items-center justify-between gap-6 shrink-0">
             <div>
               <h2 className="text-3xl font-black text-stone-900 tracking-tighter uppercase mb-1">Fluxos</h2>
               <p className="text-[10px] font-black text-stone-400 uppercase tracking-[0.2em]">Documente sua rotina</p>
@@ -191,13 +191,7 @@ export default function ProcessModule({ userId, initialSelectedProcessId }: Proc
             </div>
           </header>
 
-          <section className="flex-1 p-6 lg:p-8 pt-0 overflow-y-auto custom-scrollbar">
-            <div className="mb-6 lg:mb-8">
-              <h2 className="text-2xl lg:text-3xl font-black tracking-tighter text-stone-900 uppercase">
-                Meus Processos
-              </h2>
-            </div>
-
+          <section className="flex-1 p-6 lg:p-8 overflow-y-auto custom-scrollbar">
             {filteredProcesses.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-20 text-stone-300">
                  <div className="w-20 h-20 lg:w-24 lg:h-24 bg-stone-100 rounded-[32px] lg:rounded-[40px] flex items-center justify-center mb-6">

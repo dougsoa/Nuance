@@ -267,7 +267,7 @@ export default function App() {
             {[
               { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
               { id: 'notes', label: 'Anotações', icon: StickyNote },
-              { id: 'tasks', label: 'Tarefas Diárias', icon: ListTodo },
+              { id: 'tasks', label: 'Tarefas', icon: ListTodo },
               { id: 'processes', label: 'Fluxos de Trabalho', icon: GitBranch },
             ].map((item) => {
               const isActive = 
@@ -393,10 +393,10 @@ export default function App() {
           ) : activeView === 'notes' ? (
             <div className="flex-1 flex flex-col min-w-0 overflow-hidden bg-white/40 lg:rounded-[32px] lg:border lg:border-stone-200/60 lg:mb-4 lg:shadow-inner">
                {/* Search & Actions Bar */}
-               <header className="p-6 lg:p-10 pb-0 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+               <header className="p-6 lg:p-10 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
                   <div>
                     <h2 className="text-3xl font-black text-stone-900 tracking-tighter uppercase mb-1">
-                      {selectedCategory === 'Daily Tasks' ? 'Planejamento' : (selectedCategory || 'Anotações')}
+                      {selectedCategory === 'Daily Tasks' ? 'Tarefas' : (selectedCategory || 'Anotações')}
                     </h2>
                     <p className="text-[10px] font-black text-stone-400 uppercase tracking-[0.2em]">Explore seus pensamentos</p>
                   </div>
